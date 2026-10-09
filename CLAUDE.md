@@ -101,6 +101,7 @@ BASIC_AUTH_PASSWORD=
 
 ```
 npm run dev                       # desarrollo
+npx tsx scripts/jira-check.ts     # prueba del conector (--write vuelca snapshot.local.md)
 npx tsx scripts/extract.ts        # extracción → glossary.draft.md
 npm run build                     # verificar antes de deployar
 vercel --prod                     # deploy

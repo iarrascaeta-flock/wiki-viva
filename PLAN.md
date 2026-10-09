@@ -22,24 +22,24 @@ Convención para el resto del día: un commit al cerrar cada fase (`feat: conect
 
 ## Fase 1 — Conector de Jira
 
-- [ ] `src/connectors/types.ts` con `SourceDoc` y `SourceConnector`.
-- [ ] `src/connectors/jira.ts`, con un tipo interno `JiraIssue` y su conversión a `SourceDoc`.
-- [ ] Datos que debe leer de cada tarjeta:
+- [x] `src/connectors/types.ts` con `SourceDoc` y `SourceConnector`.
+- [x] `src/connectors/jira.ts`, con un tipo interno `JiraIssue` y su conversión a `SourceDoc`.
+- [x] Datos que debe leer de cada tarjeta:
   - Número de tarjeta (`key`, ej: ABC-123).
   - Tipo de tarjeta (`issuetype.name`): épica, historia, subtarea, bug y bug test.
   - Título (`summary`), descripción (`description`) y estado (`status.name`).
   - Tarjeta padre (`parent.key`), para saber de qué historia es cada subtarea.
   - Comentarios completos: autor, fecha y texto de cada uno.
   - Última fecha de actualización (`updated`).
-- [ ] Alcance de `sync()`, en tres pasos (una sola consulta `parent = ÉPICA` NO trae las subtareas, porque su padre es la historia, no la épica):
+- [x] Alcance de `sync()`, en tres pasos (una sola consulta `parent = ÉPICA` NO trae las subtareas, porque su padre es la historia, no la épica):
   1. La épica misma (`key = JIRA_EPIC_KEY`).
   2. Sus hijos directos con `JIRA_EPIC_JQL`: historias, bugs y bug tests.
   3. Las subtareas de esos hijos: `parent in (CLAVE-1, CLAVE-2, ...)`, en lotes de hasta 50 claves.
-- [ ] Usar `/rest/api/3/search/jql` paginando con `nextPageToken`, pidiendo solo los campos de arriba.
-- [ ] Comentarios: el campo `comment` de la búsqueda puede venir truncado. Si `comment.total` es mayor que la cantidad recibida, traer el resto con `/rest/api/3/issue/{key}/comment`, paginado.
-- [ ] Tipos de tarjeta: los nombres dependen del idioma y la configuración de Jira (ej: "Historia", "Subtarea", "Error", o un tipo personalizado "Bug Test"). No hardcodear nombres: normalizar con un mapa configurable en `jira.ts` (`epic`, `story`, `subtask`, `bug`, `bug_test`) y conservar el nombre original. Un tipo desconocido se guarda con su nombre original, no se descarta.
-- [ ] Convertir descripción y comentarios (formato ADF) a texto plano o markdown simple.
-- [ ] Formato del `content` de cada tarjeta, pensado para que el LLM lo lea y cite:
+- [x] Usar `/rest/api/3/search/jql` paginando con `nextPageToken`, pidiendo solo los campos de arriba.
+- [x] Comentarios: el campo `comment` de la búsqueda puede venir truncado. Si `comment.total` es mayor que la cantidad recibida, traer el resto con `/rest/api/3/issue/{key}/comment`, paginado.
+- [x] Tipos de tarjeta: los nombres dependen del idioma y la configuración de Jira (ej: "Historia", "Subtarea", "Error", o un tipo personalizado "Bug Test"). No hardcodear nombres: normalizar con un mapa configurable en `jira.ts` (`epic`, `story`, `subtask`, `bug`, `bug_test`) y conservar el nombre original. Un tipo desconocido se guarda con su nombre original, no se descarta.
+- [x] Convertir descripción y comentarios (formato ADF) a texto plano o markdown simple.
+- [x] Formato del `content` de cada tarjeta, pensado para que el LLM lo lea y cite:
 
 ```markdown
 ### ABC-123 · Historia · En curso · actualizada 2026-10-05
@@ -51,9 +51,9 @@ Padre: ABC-100
 - 2026-10-04 · Juan Gómez: ...
 ```
 
-- [ ] Devolver un `SourceDoc` por tarjeta con `url = JIRA_BASE_URL/browse/KEY`.
-- [ ] `src/connectors/registry.ts` exportando la lista de conectores activos (hoy solo Jira).
-- [ ] `src/lib/context.ts`: arma un único markdown con todos los docs y lo cachea en memoria 10 minutos. Loguea el tamaño aproximado en tokens (caracteres / 4).
+- [x] Devolver un `SourceDoc` por tarjeta con `url = JIRA_BASE_URL/browse/KEY`.
+- [x] `src/connectors/registry.ts` exportando la lista de conectores activos (hoy solo Jira).
+- [x] `src/lib/context.ts`: arma un único markdown con todos los docs y lo cachea en memoria 10 minutos. Loguea el tamaño aproximado en tokens (caracteres / 4).
 
 **Listo cuando:** un script de prueba imprime la cantidad de tarjetas por tipo (épica, historias, subtareas, bugs, bug tests), la cantidad total de comentarios, la fecha de actualización más reciente y el tamaño del snapshot en tokens aproximados.
 
