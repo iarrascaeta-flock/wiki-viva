@@ -134,6 +134,40 @@ Formato de cada término en el glosario:
 
 ## Mejoras futuras
 
+### MCP local para mantenedores + sitio de solo lectura (propuesta de arquitectura)
+
+Unifica varias mejoras de esta lista (Jira en producción, modelo más capaz, varias épicas) en una arquitectura más simple: **el trabajo de IA lo hace el Claude de cada mantenedor**, en local y con VPN, a través de un MCP; el sitio desplegado solo lee.
+
+```
+Mantenedores (local, VPN)                   Repo privado común           Todo el equipo
+Claude Code / Desktop + MCP "wiki-viva" ──► glossaries/<ÉPICA>.md  ──►  Sitio solo lectura
+ · lee Jira (token propio)                  epics.json (estados)          (wiki; chat opcional)
+ · lee/escribe el repo común
+```
+
+**MCP local (sin IA propia, solo acceso a datos):**
+
+- [ ] `listar_epicas` / `estado_epica`: lee `epics.json` (pendiente, en extracción por X, en revisión, publicada) para coordinar y evitar que dos personas trabajen la misma épica.
+- [ ] `leer_epica(clave)`: tarjetas desde Jira por VPN, reutilizando `src/connectors/jira.ts` (épica, hijos, subtareas, comentarios, tipos excluidos).
+- [ ] `leer_glosario(epica)` / `publicar_glosario(epica, contenido)`: lee y escribe `glossaries/<ÉPICA>.md` con un commit a nombre de quien publica; valida el formato con `parseGlossary` antes de escribir.
+- [ ] `agregar_termino(epica, término)`: suma un término puntual (reemplaza "Agregar al glosario" del chat).
+- [ ] Distribución: paquete instalable con `npx` desde el repo, con instrucciones para Claude Code y Claude Desktop.
+- [ ] Credenciales por persona: token de Jira propio y token de GitHub con acceso de escritura al repo común.
+
+**Flujo:** una conversación con Claude ("armá el glosario de la épica ABC-200"): Claude lee las tarjetas con el MCP, propone los términos, los revisa con la persona (duplicados, definiciones, fuentes) y publica con su OK. La revisión humana queda en la misma conversación.
+
+**Sitio de solo lectura:**
+
+- [ ] Glosario por épica (`glossaries/*.md`) con filtro por épica en la wiki.
+- [ ] Sin formularios ni procesos largos: solo lectura del repo común con caché.
+- [ ] Definir el chat: (a) sacarlo y dejar solo la wiki, (b) mantenerlo con una key de LLM pagada por la organización, o (c) que cada persona le pregunte a su propio Claude con el MCP en modo lectura.
+
+**Ventajas:** no hace falta key de LLM para la extracción (usa el Claude de cada persona, mejor que los modelos gratis); Jira deja de ser un problema (VPN local); la revisión es natural; se reutiliza el conector, el parser y el formato existentes.
+
+**A confirmar antes de arrancar:** que la organización permita MCP locales en Claude y el procesamiento de datos del cliente con Claude.
+
+**Esfuerzo estimado:** 1 a 2 días (MCP, glosario por épica y sitio de solo lectura).
+
 ### Snapshot de Jira para producción (Jira con VPN / lista de IPs)
 
 **Problema:** el Jira del cliente solo acepta conexiones por VPN o desde IPs permitidas. Las funciones de Vercel salen con IPs dinámicas y Jira responde 403 ("your IP address is not listed in the IP allowlist"). Hoy el chat de producción responde solo con el glosario: sin el detalle de las tarjetas ni los títulos en las citas. En local, con VPN, funciona completo.
