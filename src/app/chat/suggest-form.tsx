@@ -32,8 +32,7 @@ export function SuggestForm({ term, question, onClose }: { term: string; questio
   if (state.status === "done") {
     return (
       <div className="rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
-        Listo: <strong>{state.name}</strong> se agregó al glosario. Va a aparecer en la wiki y en el chat en ~1 minuto, cuando
-        termine el redeploy.{" "}
+        Listo: <strong>{state.name}</strong> se agregó al glosario y ya aparece en la wiki y en el chat.{" "}
         <a href={state.commitUrl} target="_blank" rel="noreferrer" className="underline">
           Ver el cambio
         </a>

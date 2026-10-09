@@ -46,3 +46,6 @@ next-env.d.ts
 
 # borrador de la extracción: no se commitea sin revisar
 glossary.draft.md
+
+# glosario real: vive en el repo privado GLOSSARY_REPO, nunca en este repo público
+glossary.md

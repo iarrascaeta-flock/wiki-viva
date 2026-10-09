@@ -2,7 +2,7 @@
 
 Asistente que responde dudas de terminología y casos especiales del negocio, para no tener que preguntarle a un compañero. MVP de un día, deploy en Vercel.
 
-El LLM extrae un glosario de una épica de Jira, una persona lo revisa y se guarda como `glossary.md`. Ese glosario alimenta dos salidas: una página wiki navegable y un chat que responde citando issues.
+El LLM extrae un glosario de una épica de Jira, una persona lo revisa y se guarda como `glossary.md` en un **repo privado de datos** (`GLOSSARY_REPO`): este repo es público y nunca contiene el glosario real. Ese glosario alimenta dos salidas: una página wiki navegable y un chat que responde citando issues.
 
 El plan de trabajo paso a paso está en `PLAN.md`. Seguilo en orden y marcá cada tarea al terminarla.
 
@@ -19,8 +19,8 @@ El plan de trabajo paso a paso está en `PLAN.md`. Seguilo en orden y marcá cad
 ```
 Conectores (SourceConnector) → Extracción (script local) → glossary.md (revisado a mano)
                              → API de chat (glosario + snapshot de la épica en contexto)
-glossary.md → Página wiki
-API de chat → UI de chat con citas → botón "Agregar al glosario" → commit a glossary.md (GitHub API)
+glossary.md (repo privado, leído vía API de GitHub y cacheado) → Página wiki + API de chat
+API de chat → UI de chat con citas → botón "Agregar al glosario" → commit a glossary.md en el repo privado
 ```
 
 Toda fuente de datos implementa esta interfaz. Agregar una fuente = un conector nuevo + una entrada en `src/connectors/registry.ts`:
@@ -50,10 +50,10 @@ export interface SourceConnector {
 ```
 src/
   app/
-    page.tsx               # página wiki (lee glossary.md)
+    page.tsx               # página wiki (lee el glosario)
     chat/page.tsx          # UI del chat
     api/chat/route.ts      # streaming con contexto
-    api/suggest/route.ts   # "Agregar al glosario": commit a glossary.md
+    api/suggest/route.ts   # "Agregar al glosario": commit al repo privado + invalida la caché
   connectors/
     types.ts               # SourceConnector, SourceDoc
     jira.ts                # sync() de la épica (solo lectura)
@@ -65,8 +65,9 @@ src/
     citations.ts           # detecta claves de issue y arma links
   proxy.ts                 # basic auth (ex middleware.ts en Next 16)
 scripts/extract.ts         # extracción, corre en local con tsx
-glossary.md                # glosario revisado (fuente de verdad)
-glossary.draft.md          # salida de la extracción, NO commitear sin revisar
+glossary.example.md        # glosario ficticio, se usa si no hay GLOSSARY_REPO
+glossary.md                # copia local opcional del glosario real (gitignored)
+glossary.draft.md          # salida de la extracción (gitignored)
 ```
 
 ## Variables de entorno (`.env.local`, nunca commitear)
@@ -81,8 +82,8 @@ JIRA_API_TOKEN=
 JIRA_EPIC_KEY=ABC-100
 JIRA_EPIC_JQL=parent = ABC-100      # o "Epic Link" = ABC-100 en proyectos clásicos
 JIRA_PROJECT_KEY=ABC
-GITHUB_TOKEN=                       # fine-grained, solo Contents: read/write en el repo
-GITHUB_REPO=iarrascaeta-flock/wiki-viva
+GITHUB_TOKEN=                       # fine-grained, solo Contents: read/write en GLOSSARY_REPO
+GLOSSARY_REPO=owner/wiki-viva-data  # repo privado con glossary.md
 BASIC_AUTH_USER=
 BASIC_AUTH_PASSWORD=
 BASIC_AUTH_USERS=                   # opcional, usuarios extra: "user:pass,user2:pass2"
@@ -95,6 +96,7 @@ BASIC_AUTH_USERS=                   # opcional, usuarios extra: "user:pass,user2
 - Toda respuesta cita la clave del issue de origen (ej: ABC-123) cuando el dato sale de Jira.
 - El snapshot de la épica se cachea en memoria con TTL de 10 minutos.
 - La extracción escribe en `glossary.draft.md`, nunca directo en `glossary.md`.
+- El glosario real y cualquier dato de Jira nunca se commitean en este repo (es público): van al repo privado `GLOSSARY_REPO`. Los ejemplos en código y docs usan claves ficticias (`ABC-123`).
 - Manejar errores de Jira y del LLM con mensajes claros en la UI, sin romper la página.
 - Mantener el código simple: es un MVP de un día. No agregar dependencias sin necesidad.
 

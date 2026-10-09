@@ -1,9 +1,10 @@
-import { formatTerm, parseGlossary, slugify } from "@/lib/glossary";
+import { revalidateTag } from "next/cache";
+import { formatTerm, GLOSSARY_FILE, GLOSSARY_TAG, parseGlossary, slugify } from "@/lib/glossary";
 
-// "Agregar al glosario": agrega el término al final de glossary.md con un commit vía la API de GitHub.
-// El commit dispara un redeploy en Vercel y el término aparece en la wiki y el chat en ~1 minuto.
+// "Agregar al glosario": agrega el término al final de glossary.md en el repo privado de datos
+// (GLOSSARY_REPO) con un commit vía la API de GitHub, e invalida la caché del glosario.
 
-const FILE = "glossary.md";
+const FILE = GLOSSARY_FILE;
 const ISSUE_KEY = /^[A-Z][A-Z0-9]+-\d+$/;
 
 interface SuggestBody {
@@ -16,7 +17,7 @@ interface SuggestBody {
 }
 
 function github(path: string, init?: RequestInit) {
-  return fetch(`https://api.github.com/repos/${process.env.GITHUB_REPO}${path}`, {
+  return fetch(`https://api.github.com/repos/${process.env.GLOSSARY_REPO}${path}`, {
     ...init,
     headers: {
       Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
@@ -47,8 +48,8 @@ function fail(message: string, status: number) {
 }
 
 export async function POST(req: Request) {
-  if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPO) {
-    return fail("Agregar al glosario no está configurado (falta GITHUB_TOKEN o GITHUB_REPO).", 500);
+  if (!process.env.GITHUB_TOKEN || !process.env.GLOSSARY_REPO) {
+    return fail("Agregar al glosario no está configurado (falta GITHUB_TOKEN o GLOSSARY_REPO).", 500);
   }
 
   const body = (await req.json()) as SuggestBody;
@@ -99,6 +100,7 @@ export async function POST(req: Request) {
     });
     if (res.ok) {
       const { commit } = (await res.json()) as { commit: { html_url: string } };
+      revalidateTag(GLOSSARY_TAG, { expire: 0 });
       return Response.json({ ok: true, name, commitUrl: commit.html_url });
     }
     if (res.status !== 409 || attempt === 2) {

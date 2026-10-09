@@ -105,9 +105,10 @@ Formato de cada término en el glosario:
 - [x] `src/lib/citations.ts`: detecta claves con `/\b[A-Z][A-Z0-9]+-\d+\b/` y las convierte en links a Jira en los mensajes del chat.
 - [x] Cuando el modelo no encuentra un término, la respuesta incluye un marcador (ej: `[SIN_DATOS: término]`) y la UI muestra un botón "Agregar al glosario".
 - [x] El botón abre un formulario con el término precargado para completar sinónimos, definición, casos especiales y fuentes (mismo formato que el glosario).
-- [ ] `src/app/api/suggest/route.ts`: recibe el término completo y lo agrega al final de `glossary.md` con un commit vía la API de GitHub (`GITHUB_TOKEN`, `GITHUB_REPO`). El commit dispara un redeploy y el término aparece en la wiki y el chat en ~1 minuto.
+- [x] `src/app/api/suggest/route.ts`: recibe el término completo y lo agrega al final de `glossary.md` en el repo privado de datos con un commit vía la API de GitHub (`GITHUB_TOKEN`, `GLOSSARY_REPO`), e invalida la caché del glosario: el término aparece al instante en la wiki y el chat.
+- [x] Glosario fuera del repo público: `glossary.md` vive en el repo privado `GLOSSARY_REPO`; este repo tiene `glossary.example.md` con datos ficticios.
 
-**Listo cuando:** una pregunta sin respuesta termina en un término nuevo en `glossary.md`, visible en la wiki después del redeploy.
+**Listo cuando:** una pregunta sin respuesta termina en un término nuevo en `glossary.md` (repo privado), visible en la wiki.
 
 **Checkpoint:** al cerrar esta fase se congela la funcionalidad; desde acá solo se arreglan bugs.
 

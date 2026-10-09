@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { cacheLife, cacheTag } from "next/cache";
 
 export interface GlossaryTerm {
   slug: string;
@@ -13,8 +14,13 @@ export interface GlossaryTerm {
 export interface Glossary {
   markdown: string;
   terms: GlossaryTerm[];
-  isDraft: boolean; // true si se está mostrando glossary.draft.md (solo en desarrollo)
+  // De dónde salió: el repo privado de datos, un glossary.md local, el borrador (solo en
+  // desarrollo) o el ejemplo ficticio del repo público.
+  source: "github" | "local" | "draft" | "example";
 }
+
+export const GLOSSARY_TAG = "glossary";
+export const GLOSSARY_FILE = "glossary.md";
 
 const FIELDS: Record<string, keyof GlossaryTerm> = {
   "siglas / sinónimos": "synonyms",
@@ -83,17 +89,39 @@ export function formatTerm(t: Omit<GlossaryTerm, "slug">): string {
   ].join("\n");
 }
 
-// Lee glossary.md. En desarrollo, si todavía no existe, usa glossary.draft.md para poder ver la página.
-export function loadGlossary(): Glossary {
-  const file = path.join(process.cwd(), "glossary.md");
-  const draft = path.join(process.cwd(), "glossary.draft.md");
-  let markdown = "";
-  let isDraft = false;
-  if (existsSync(file)) {
-    markdown = readFileSync(file, "utf8");
-  } else if (process.env.NODE_ENV === "development" && existsSync(draft)) {
-    markdown = readFileSync(draft, "utf8");
-    isDraft = true;
+// Lee el glosario de GLOSSARY_REPO (repo privado) vía la API de GitHub. Sin GLOSSARY_REPO, usa un
+// glossary.md local, el borrador (solo en desarrollo) o glossary.example.md.
+// Se cachea con el tag GLOSSARY_TAG: /api/suggest lo invalida al agregar un término.
+export async function loadGlossary(): Promise<Glossary> {
+  "use cache";
+  cacheTag(GLOSSARY_TAG);
+  cacheLife("hours");
+
+  const repo = process.env.GLOSSARY_REPO;
+  if (repo) {
+    const res = await fetch(`https://api.github.com/repos/${repo}/contents/${GLOSSARY_FILE}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        Accept: "application/vnd.github.raw+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    });
+    if (!res.ok) throw new Error(`No se pudo leer el glosario de GitHub (${res.status})`);
+    const markdown = await res.text();
+    return { markdown, terms: parseGlossary(markdown), source: "github" };
   }
-  return { markdown, terms: parseGlossary(markdown), isDraft };
+
+  const candidates: [string, Glossary["source"]][] = [
+    [GLOSSARY_FILE, "local"],
+    ...(process.env.NODE_ENV === "development" ? [["glossary.draft.md", "draft"] as [string, Glossary["source"]]] : []),
+    ["glossary.example.md", "example"],
+  ];
+  for (const [file, source] of candidates) {
+    const full = path.join(process.cwd(), file);
+    if (existsSync(full)) {
+      const markdown = readFileSync(full, "utf8");
+      return { markdown, terms: parseGlossary(markdown), source };
+    }
+  }
+  return { markdown: "", terms: [], source: "example" };
 }

@@ -1,9 +1,21 @@
 import Link from "next/link";
-import { loadGlossary } from "@/lib/glossary";
+import { type Glossary, loadGlossary } from "@/lib/glossary";
 import { GlossarySearch } from "./glossary-search";
 
-export default function WikiPage() {
-  const { terms, isDraft } = loadGlossary();
+const SOURCE_NOTICE: Partial<Record<Glossary["source"], string>> = {
+  draft: "Mostrando glossary.draft.md: borrador sin revisar (solo en desarrollo).",
+  example: "Mostrando glossary.example.md: glosario de ejemplo con datos ficticios. Configurá GLOSSARY_REPO para usar el real.",
+};
+
+export default async function WikiPage() {
+  let glossary: Glossary | null = null;
+  try {
+    glossary = await loadGlossary();
+  } catch (err) {
+    console.error("[wiki]", err instanceof Error ? err.message : err);
+  }
+  const terms = glossary?.terms ?? [];
+  const notice = glossary ? SOURCE_NOTICE[glossary.source] : undefined;
   const jiraBaseUrl = process.env.JIRA_BASE_URL ?? "";
 
   return (
@@ -23,13 +35,15 @@ export default function WikiPage() {
         </Link>
       </header>
 
-      {isDraft && (
+      {notice && (
         <p className="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
-          Mostrando <code>glossary.draft.md</code>: borrador sin revisar (solo en desarrollo).
+          {notice}
         </p>
       )}
 
-      {terms.length === 0 ? (
+      {!glossary ? (
+        <p className="text-red-700 dark:text-red-300">No se pudo cargar el glosario. Probá de nuevo en unos minutos.</p>
+      ) : terms.length === 0 ? (
         <p className="text-neutral-500">Todavía no hay términos en el glosario.</p>
       ) : (
         <GlossarySearch terms={terms} jiraBaseUrl={jiraBaseUrl} />

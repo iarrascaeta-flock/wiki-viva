@@ -24,7 +24,13 @@ function friendlyError(error: unknown): string {
 export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json();
 
-  const { markdown: glossary } = loadGlossary();
+  // Si el glosario no se puede leer, el chat sigue con las tarjetas de Jira.
+  let glossary = "";
+  try {
+    glossary = (await loadGlossary()).markdown;
+  } catch (err) {
+    console.error("[chat] no se pudo leer el glosario:", err instanceof Error ? err.message : err);
+  }
 
   // Si Jira falla, el chat sigue respondiendo con el glosario.
   let snapshot: string | null = null;

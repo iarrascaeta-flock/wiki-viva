@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wiki viva de terminología
 
-## Getting Started
+Asistente que responde dudas de terminología y casos especiales del negocio, para no tener que preguntarle a un compañero. MVP de un día.
 
-First, run the development server:
+Un LLM extrae un glosario de una épica de Jira, una persona lo revisa y el glosario alimenta dos salidas:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Wiki** (`/`): lista de términos con buscador, sinónimos, casos especiales y fuentes linkeadas a Jira.
+- **Chat** (`/chat`): responde solo con el glosario y las tarjetas de la épica, citando las claves de Jira (ej: `ABC-123`). Si no encuentra un término, lo dice y ofrece **"Agregar al glosario"**.
+
+## Arquitectura
+
+```
+Jira (épica + historias + subtareas) ──► scripts/extract.ts ──► glossary.draft.md ──► revisión humana
+                                                                                         │
+                                                       repo privado de datos: glossary.md ◄┘
+                                                                   │
+                         ┌─────────────────────────────────────────┴───────────┐
+                         ▼                                                     ▼
+                   Wiki (/)                                   Chat (/api/chat): glosario + snapshot
+                                                              de la épica en contexto, con citas
+                                                                       │
+                                        "Agregar al glosario" ◄────────┘
+                                        (/api/suggest: commit al repo privado)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **El glosario real no está en este repo.** Vive en un repo privado (`GLOSSARY_REPO`) porque contiene terminología y reglas de negocio del cliente. La app lo lee con la API de GitHub y lo cachea; al agregar un término se invalida la caché. Sin `GLOSSARY_REPO`, la app usa [`glossary.example.md`](glossary.example.md), con datos ficticios.
+- **Conectores**: toda fuente implementa `SourceConnector` (`src/connectors/types.ts`). Hoy hay uno, Jira (`src/connectors/jira.ts`). Agregar una fuente = un conector nuevo + una entrada en `src/connectors/registry.ts`.
+- **LLM**: vía OpenRouter, siempre a través de `getModel()` (`src/lib/model.ts`). `LLM_MODEL` acepta una lista separada por comas de modelos de respaldo.
+- Sin base de datos. El snapshot de Jira se cachea en memoria 10 minutos.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Stack: Next.js 16 (App Router, Cache Components) · TypeScript · Tailwind · Vercel AI SDK · OpenRouter · Jira Cloud REST API.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Correr en local
 
-## Learn More
+```bash
+npm install
+cp .env.example .env.local   # completar las variables
+npm run dev                  # http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+Variables (ver `.env.example`):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Variable | Para qué |
+|---|---|
+| `BASIC_AUTH_USER`, `BASIC_AUTH_PASSWORD` | Acceso a la app (basic auth). `BASIC_AUTH_USERS` acepta usuarios extra: `user:pass,user2:pass2`. |
+| `LLM_PROVIDER`, `LLM_MODEL`, `OPENROUTER_API_KEY` | Modelo del chat y de la extracción. |
+| `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN` | Acceso a Jira Cloud (API token). |
+| `JIRA_EPIC_KEY`, `JIRA_EPIC_JQL`, `JIRA_PROJECT_KEY` | Épica a leer (ej: `ABC-100`, `parent = ABC-100`, `ABC`). |
+| `GLOSSARY_REPO`, `GITHUB_TOKEN` | Repo privado con `glossary.md` y un fine-grained token con *Contents: read/write* solo sobre ese repo. Opcionales: sin ellos se usa el glosario de ejemplo y "Agregar al glosario" queda deshabilitado. |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Generar el glosario
 
-## Deploy on Vercel
+```bash
+npx tsx scripts/jira-check.ts      # prueba el conector: tarjetas por tipo, comentarios, tamaño en tokens
+npx tsx scripts/extract.ts         # extracción por lotes → glossary.draft.md (no se commitea)
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Revisar `glossary.draft.md` a mano y subirlo como `glossary.md` al repo privado de datos. Formato de cada término:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```markdown
+## Orden de compra
+**Siglas / sinónimos:** OC, Pedido
+**Definición:** Documento que registra lo que un cliente compra.
+**Casos especiales:** Una OC confirmada no se puede editar.
+**Fuentes:** ABC-101, ABC-102
+```
+
+## Deploy
+
+Vercel, con deploy automático en cada push a `main`. Cargar las mismas variables en el proyecto de Vercel. Antes de pushear: `npm run build`.
+
+Más detalle del diseño y las decisiones en [`CLAUDE.md`](CLAUDE.md) y [`PLAN.md`](PLAN.md).
