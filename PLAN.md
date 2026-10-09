@@ -153,3 +153,17 @@ Hoy cada despliegue cubre una épica (ver "Usar con otra épica" en el README). 
 - [ ] Extracción incremental: extraer solo la épica nueva y fusionar sus términos con el glosario existente, marcando los que ya están.
 - [ ] Contexto del chat: con varias épicas el snapshot completo no entra. Elegir las tarjetas relevantes por pregunta (búsqueda por términos del glosario o índice vectorial) en vez de mandar todo.
 - [ ] Wiki: filtro por épica y fuentes agrupadas por épica.
+
+### Acceso por épica según el equipo
+
+Que cada persona vea solo la wiki y el chat de las épicas que tiene asignadas.
+
+**Mientras tanto (sin cambios de código):** un despliegue por equipo o épica, cada uno con su proyecto en Vercel, su repo privado de datos y sus credenciales (guía "Usar con otra épica" del README). Es el aislamiento más fuerte.
+
+**Una sola app con permisos por usuario** (depende de "Login con Microsoft 365" y "Varias épicas en la misma app"):
+
+- [ ] Permisos por grupos de Entra ID (ej: `wiki-MAART-13138`), leídos de la sesión del usuario. Alternativa: archivo de permisos (épica → emails o grupos) en el repo privado. Jira como fuente de verdad (tareas asignadas) se descarta por frágil.
+- [ ] Un glosario por épica en el repo privado (ej: `glossaries/MAART-13138.md`) y snapshot de Jira separado por épica.
+- [ ] Filtro en el servidor en todas las rutas (wiki, `/api/chat`, `/api/suggest`), no solo en la UI.
+- [ ] El contexto del chat se arma solo con las épicas permitidas: si al modelo le llega una épica ajena, puede filtrarla en una respuesta.
+- [ ] "Agregar al glosario" escribe en el glosario de una épica a la que el usuario tiene acceso.
