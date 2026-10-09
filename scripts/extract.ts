@@ -62,12 +62,17 @@ async function main() {
   const hash = (s: string) => createHash("sha1").update(s).digest("hex").slice(0, 16);
 
   // Reintentos manuales con log, para ver si una demora es lentitud del modelo o límites (429).
-  async function generate<T>(system: string, prompt: string, schema: z.ZodType<T>): Promise<T> {
+  async function generate<T>(
+    system: string,
+    prompt: string,
+    schema: z.ZodType<T>,
+    { reasoning = true, attempts = MAX_ATTEMPTS } = {},
+  ): Promise<T> {
     for (let attempt = 1; ; attempt++) {
       const started = Date.now();
       try {
         const result = await generateText({
-          model: getModel(),
+          model: getModel({ reasoning }),
           system,
           prompt,
           temperature: 0,
@@ -84,7 +89,7 @@ async function main() {
         const e = err as { statusCode?: number; message?: string };
         const secs = Math.round((Date.now() - started) / 1000);
         console.log(`  intento ${attempt} falló tras ${secs}s: ${e.statusCode ?? ""} ${String(e.message).slice(0, 160)}`);
-        if (attempt >= MAX_ATTEMPTS) throw err;
+        if (attempt >= attempts) throw err;
         await new Promise((r) => setTimeout(r, 15_000 * attempt));
       }
     }
@@ -131,14 +136,23 @@ async function main() {
   if (batches.length > 1) {
     const list = [...byName.values()];
     const key = `merge:${hash(prompts.MERGE_SYSTEM + prompts.mergePrompt(list))}`;
+    // Sin razonamiento (con 400 términos el modelo se demora minutos razonando) y sin frenar la
+    // extracción si falla: los duplicados que queden se limpian en la revisión manual.
     if (!cache[key]) {
       console.log(`Agrupando sinónimos de ${list.length} términos...`);
-      const { groups } = await generate(prompts.MERGE_SYSTEM, prompts.mergePrompt(list), prompts.mergeGroupsSchema);
-      cache[key] = groups;
-      saveCache();
+      try {
+        const { groups } = await generate(prompts.MERGE_SYSTEM, prompts.mergePrompt(list), prompts.mergeGroupsSchema, {
+          reasoning: false,
+          attempts: 2,
+        });
+        cache[key] = groups;
+        saveCache();
+      } catch {
+        console.warn("No se pudieron agrupar sinónimos: el borrador queda solo con la fusión por nombre exacto.");
+      }
     }
     let merged = 0;
-    for (const group of cache[key] as z.infer<typeof prompts.mergeGroupsSchema>["groups"]) {
+    for (const group of (cache[key] ?? []) as z.infer<typeof prompts.mergeGroupsSchema>["groups"]) {
       const target = byName.get(normalize(group.canonical));
       if (!target) continue;
       for (const name of group.duplicates) {

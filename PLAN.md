@@ -59,9 +59,9 @@ Padre: ABC-100
 
 ## Fase 2 — Extracción
 
-- [ ] Prompt de extracción en `src/lib/prompts.ts`. Pide términos de negocio, siglas, sinónimos y casos especiales, cada uno con los issues donde aparece. Prohíbe inventar definiciones no sustentadas.
-- [ ] `scripts/extract.ts`: corre `sync()`, llama al LLM con `generateText` y escribe `glossary.draft.md`.
-- [ ] Si el snapshot es demasiado grande para el modelo, procesar por lotes de issues y fusionar términos duplicados en una segunda llamada.
+- [x] Prompt de extracción en `src/lib/prompts.ts`. Pide términos de negocio, siglas, sinónimos y casos especiales, cada uno con los issues donde aparece. Prohíbe inventar definiciones no sustentadas.
+- [x] `scripts/extract.ts`: corre `sync()`, llama al LLM con `generateText` y escribe `glossary.draft.md`.
+- [x] Si el snapshot es demasiado grande para el modelo, procesar por lotes de issues y fusionar términos duplicados en una segunda llamada.
 
 Formato de cada término en el glosario:
 
@@ -84,19 +84,19 @@ Formato de cada término en el glosario:
 
 ## Fase 4 — Página wiki
 
-- [ ] `src/app/page.tsx` lee `glossary.md` en el servidor y lo parsea por secciones `##`.
-- [ ] Lista de términos con buscador del lado del cliente (filtra por nombre, siglas y definición).
-- [ ] Las claves de issue en "Fuentes" se muestran como links a Jira.
-- [ ] Link visible al chat.
+- [x] `src/app/page.tsx` lee `glossary.md` en el servidor y lo parsea por secciones `##`.
+- [x] Lista de términos con buscador del lado del cliente (filtra por nombre, siglas y definición).
+- [x] Las claves de issue en "Fuentes" se muestran como links a Jira.
+- [x] Link visible al chat.
 
 **Listo cuando:** la wiki está online en Vercel y la búsqueda funciona. Este ya es un entregable por sí solo.
 
 ## Fase 5 — API y UI de chat
 
-- [ ] `src/app/api/chat/route.ts` con `streamText` y `getModel()`.
-- [ ] System prompt: glosario completo + snapshot de la épica + reglas (responder solo con esas fuentes, citar claves de issue, decir "no lo sé" si no está).
-- [ ] `src/app/chat/page.tsx` con `useChat` del AI SDK, streaming y estado de carga.
-- [ ] Manejo de errores: si falla Jira o el LLM, mensaje claro en la UI.
+- [x] `src/app/api/chat/route.ts` con `streamText` y `getModel()`.
+- [x] System prompt: glosario completo + snapshot de la épica + reglas (responder solo con esas fuentes, citar claves de issue, decir "no lo sé" si no está).
+- [x] `src/app/chat/page.tsx` con `useChat` del AI SDK, streaming y estado de carga.
+- [x] Manejo de errores: si falla Jira o el LLM, mensaje claro en la UI.
 
 **Listo cuando:** el chat responde con streaming una pregunta sobre un término del glosario.
 

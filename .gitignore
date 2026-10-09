@@ -43,3 +43,6 @@ next-env.d.ts
 
 # snapshots locales de Jira (datos del negocio)
 *.local.*
+
+# borrador de la extracción: no se commitea sin revisar
+glossary.draft.md
