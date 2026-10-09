@@ -144,3 +144,12 @@ Formato de cada término en el glosario:
 - [ ] Quitar `BASIC_AUTH_*` del código y de Vercel.
 
 **Por qué:** sin contraseñas compartidas, el acceso se revoca solo al dejar la empresa (con MFA si el tenant lo exige) y queda registrado quién agrega cada término. Estaba fuera del alcance del MVP ("OAuth por usuario" en `CLAUDE.md`).
+
+### Varias épicas en la misma app
+
+Hoy cada despliegue cubre una épica (ver "Usar con otra épica" en el README). Para que un mismo glosario y chat cubran varias:
+
+- [ ] `JIRA_EPIC_KEYS` con una lista de épicas; el conector de Jira trae cada una con sus hijos y subtareas.
+- [ ] Extracción incremental: extraer solo la épica nueva y fusionar sus términos con el glosario existente, marcando los que ya están.
+- [ ] Contexto del chat: con varias épicas el snapshot completo no entra. Elegir las tarjetas relevantes por pregunta (búsqueda por términos del glosario o índice vectorial) en vez de mandar todo.
+- [ ] Wiki: filtro por épica y fuentes agrupadas por épica.

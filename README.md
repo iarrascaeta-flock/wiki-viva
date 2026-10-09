@@ -88,6 +88,52 @@ Revisar `glossary.draft.md` a mano y subirlo como `glossary.md` al repo privado 
 **Fuentes:** ABC-101, ABC-102
 ```
 
+## Usar con otra épica
+
+Cada despliegue trabaja sobre **una épica**. Para armar la wiki de otra épica (otro equipo u otro proyecto) no hace falta tocar código:
+
+1. **Credenciales de Jira.** Una cuenta con acceso a la épica y un API token (https://id.atlassian.com/manage-profile/security/api-tokens).
+
+2. **Repo privado para los datos.** El glosario nunca va en este repo:
+   ```bash
+   gh repo create <owner>/<nombre>-data --private
+   ```
+   Crear un fine-grained token (https://github.com/settings/personal-access-tokens/new) con acceso **solo** a ese repo y permiso **Contents: Read and write**.
+
+3. **Configurar `.env.local`** (partiendo de `.env.example`):
+   ```bash
+   JIRA_EPIC_KEY=ABC-100
+   JIRA_EPIC_JQL="parent = ABC-100"    # en proyectos clásicos: "Epic Link" = ABC-100
+   JIRA_PROJECT_KEY=ABC                # solo se linkean claves de este proyecto
+   GLOSSARY_REPO=<owner>/<nombre>-data
+   GITHUB_TOKEN=github_pat_...
+   ```
+
+4. **Probar el conector** y revisar qué trae:
+   ```bash
+   npx tsx scripts/jira-check.ts --write   # tarjetas por tipo, comentarios y tamaño; vuelca snapshot.local.md
+   ```
+   Si el proyecto usa otros nombres de tipo (por ejemplo "Story" en vez de "Historia"), agregarlos a `TYPE_MAP` en `src/connectors/jira.ts`. Si hay tipos que pesan mucho y no aportan terminología (casos de prueba, por ejemplo), sumarlos a `EXCLUDED_TYPES`. Conviene que el snapshot quede por debajo de ~150k tokens, porque va completo en el contexto del chat.
+
+5. **Extraer el borrador:**
+   ```bash
+   npx tsx scripts/extract.ts   # → glossary.draft.md
+   ```
+   Corre por lotes de ~8k tokens (un pedido al LLM por lote) y guarda cada lote en `extract.cache.local.json`: si se corta, la siguiente corrida retoma desde ahí. Con modelos gratis de OpenRouter, tener en cuenta el cupo diario de pedidos.
+
+6. **Revisar a mano.** Fusionar duplicados, borrar elementos de pantalla o dudosos y corregir definiciones. Cada término tiene que tener al menos una fuente.
+
+7. **Subir el glosario al repo privado:**
+   ```bash
+   git clone https://github.com/<owner>/<nombre>-data.git
+   cp glossary.draft.md <nombre>-data/glossary.md
+   cd <nombre>-data && git add glossary.md && git commit -m "glosario revisado" && git push
+   ```
+
+8. **Deploy.** Crear un proyecto nuevo en Vercel desde este repo (o reutilizar uno) y cargar todas las variables de `.env.example` con los valores de la nueva épica. Verificar que `/` muestre los términos y que `/chat` responda citando claves de la épica.
+
+> Combinar varias épicas en una misma app (un glosario y un chat para todas) requiere cambios en el conector y en el armado del contexto: está anotado como mejora futura en [`PLAN.md`](PLAN.md).
+
 ## Deploy
 
 Vercel, con deploy automático en cada push a `main`. Cargar las mismas variables en el proyecto de Vercel. Antes de pushear: `npm run build`.
