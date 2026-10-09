@@ -123,3 +123,9 @@ Formato de cada término en el glosario:
 - [ ] Cargar todas las variables de entorno en Vercel.
 - [ ] `npm run build` local sin errores y deploy a producción.
 - [ ] Probar wiki, chat y sugerencia en la URL de producción.
+
+## Entrega
+
+- [x] Repo de código público (`wiki-viva`) con historial limpio: nunca contuvo el glosario real ni datos de Jira.
+- [x] Glosario real en repo privado (`wiki-viva-data`), leído y escrito por la app con un fine-grained token limitado a ese repo.
+- [x] `glossary.example.md` con datos ficticios para correr la app sin acceso a los datos.
