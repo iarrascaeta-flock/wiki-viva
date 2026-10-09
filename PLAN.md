@@ -110,9 +110,11 @@ Formato de cada término en el glosario:
 
 **Listo cuando:** una pregunta sin respuesta termina en un término nuevo en `glossary.md` (repo privado), visible en la wiki.
 
+**Pendiente:** prueba de punta a punta con un guardado real en el repo privado (el código está deployado y las validaciones verificadas).
+
 **Checkpoint:** al cerrar esta fase se congela la funcionalidad; desde acá solo se arreglan bugs.
 
-## Fase 7 — Validación
+## Fase 7 — Validación (pendiente, a futuro)
 
 - [ ] Probar con las 15 a 20 preguntas reales anotadas la noche anterior.
 - [ ] Ajustar el system prompt según los errores encontrados.
@@ -120,9 +122,9 @@ Formato de cada término en el glosario:
 
 ## Fase 8 — Deploy final
 
-- [ ] Cargar todas las variables de entorno en Vercel.
-- [ ] `npm run build` local sin errores y deploy a producción.
-- [ ] Probar wiki, chat y sugerencia en la URL de producción.
+- [x] Cargar todas las variables de entorno en Vercel.
+- [x] `npm run build` local sin errores y deploy a producción.
+- [x] Probar wiki, chat y sugerencia en la URL de producción.
 
 ## Entrega
 
