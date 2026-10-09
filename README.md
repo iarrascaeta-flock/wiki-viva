@@ -138,4 +138,8 @@ Cada despliegue trabaja sobre **una épica**. Para armar la wiki de otra épica 
 
 Vercel, con deploy automático en cada push a `main`. Cargar las mismas variables en el proyecto de Vercel. Antes de pushear: `npm run build`.
 
+## Presentación
+
+[`docs/wiki-viva-presentacion.pptx`](docs/wiki-viva-presentacion.pptx): presentación del challenge (13 slides con notas del orador): problema, solución, arquitectura, resultados, aprendizajes y próximos pasos.
+
 Más detalle del diseño y las decisiones en [`CLAUDE.md`](CLAUDE.md) y [`PLAN.md`](PLAN.md).
