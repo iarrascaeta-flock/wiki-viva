@@ -52,7 +52,6 @@ Padre: ABC-100
 ```
 
 - [ ] Devolver un `SourceDoc` por tarjeta con `url = JIRA_BASE_URL/browse/KEY`.
-- [ ] `createIssue(summary, description)` para las sugerencias de la Fase 6.
 - [ ] `src/connectors/registry.ts` exportando la lista de conectores activos (hoy solo Jira).
 - [ ] `src/lib/context.ts`: arma un único markdown con todos los docs y lo cachea en memoria 10 minutos. Loguea el tamaño aproximado en tokens (caracteres / 4).
 
@@ -105,9 +104,10 @@ Formato de cada término en el glosario:
 
 - [ ] `src/lib/citations.ts`: detecta claves con `/\b[A-Z][A-Z0-9]+-\d+\b/` y las convierte en links a Jira en los mensajes del chat.
 - [ ] Cuando el modelo no encuentra un término, la respuesta incluye un marcador (ej: `[SIN_DATOS: término]`) y la UI muestra un botón "Agregar al glosario".
-- [ ] `src/app/api/suggest/route.ts`: recibe término y pregunta original, crea un issue en `JIRA_PROJECT_KEY` con el tipo `JIRA_SUGGEST_ISSUE_TYPE` y devuelve su link.
+- [ ] El botón abre un formulario con el término precargado para completar sinónimos, definición, casos especiales y fuentes (mismo formato que el glosario).
+- [ ] `src/app/api/suggest/route.ts`: recibe el término completo y lo agrega al final de `glossary.md` con un commit vía la API de GitHub (`GITHUB_TOKEN`, `GITHUB_REPO`). El commit dispara un redeploy y el término aparece en la wiki y el chat en ~1 minuto.
 
-**Listo cuando:** una pregunta sin respuesta termina en un issue creado en Jira.
+**Listo cuando:** una pregunta sin respuesta termina en un término nuevo en `glossary.md`, visible en la wiki después del redeploy.
 
 **Checkpoint:** al cerrar esta fase se congela la funcionalidad; desde acá solo se arreglan bugs.
 

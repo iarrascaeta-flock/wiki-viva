@@ -20,7 +20,7 @@ El plan de trabajo paso a paso está en `PLAN.md`. Seguilo en orden y marcá cad
 Conectores (SourceConnector) → Extracción (script local) → glossary.md (revisado a mano)
                              → API de chat (glosario + snapshot de la épica en contexto)
 glossary.md → Página wiki
-API de chat → UI de chat con citas → botón "Agregar al glosario" → crea issue en Jira
+API de chat → UI de chat con citas → botón "Agregar al glosario" → commit a glossary.md (GitHub API)
 ```
 
 Toda fuente de datos implementa esta interfaz. Agregar una fuente = un conector nuevo + una entrada en `src/connectors/registry.ts`:
@@ -53,10 +53,10 @@ src/
     page.tsx               # página wiki (lee glossary.md)
     chat/page.tsx          # UI del chat
     api/chat/route.ts      # streaming con contexto
-    api/suggest/route.ts   # crea issue "Agregar al glosario"
+    api/suggest/route.ts   # "Agregar al glosario": commit a glossary.md
   connectors/
     types.ts               # SourceConnector, SourceDoc
-    jira.ts                # sync() de la épica + createIssue()
+    jira.ts                # sync() de la épica (solo lectura)
     registry.ts            # lista de fuentes activas
   lib/
     model.ts               # getModel(), selector de proveedor
@@ -81,7 +81,8 @@ JIRA_API_TOKEN=
 JIRA_EPIC_KEY=ABC-100
 JIRA_EPIC_JQL=parent = ABC-100      # o "Epic Link" = ABC-100 en proyectos clásicos
 JIRA_PROJECT_KEY=ABC
-JIRA_SUGGEST_ISSUE_TYPE=Task
+GITHUB_TOKEN=                       # fine-grained, solo Contents: read/write en el repo
+GITHUB_REPO=iarrascaeta-flock/wiki-viva
 BASIC_AUTH_USER=
 BASIC_AUTH_PASSWORD=
 ```
