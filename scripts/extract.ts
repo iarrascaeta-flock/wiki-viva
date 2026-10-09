@@ -30,6 +30,7 @@ async function main() {
   const { getSnapshot } = await import("@/lib/context");
   const { getModel } = await import("@/lib/model");
   const prompts = await import("@/lib/prompts");
+  const { formatTerm } = await import("@/lib/glossary");
   type Term = import("@/lib/prompts").Term;
 
   const { docs } = await getSnapshot();
@@ -181,15 +182,7 @@ async function main() {
 
   // 5. Markdown.
   terms.sort((a, b) => normalize(a.name).localeCompare(normalize(b.name)));
-  const sections = terms.map((t) =>
-    [
-      `## ${t.name.trim()}`,
-      `**Siglas / sinónimos:** ${t.synonyms.length > 0 ? t.synonyms.join(", ") : "—"}`,
-      `**Definición:** ${t.definition.trim()}`,
-      ...(t.specialCases.trim() ? [`**Casos especiales:** ${t.specialCases.trim()}`] : []),
-      `**Fuentes:** ${t.sources.join(", ")}`,
-    ].join("\n"),
-  );
+  const sections = terms.map((t) => formatTerm(t));
   const header = `# Glosario (borrador)\n\nGenerado automáticamente el ${new Date().toISOString().slice(0, 10)} desde ${process.env.JIRA_EPIC_KEY}. Revisar a mano antes de guardarlo como glossary.md.\n`;
   writeFileSync(OUTPUT_FILE, `${header}\n${sections.join("\n\n")}\n`);
   console.log(`Escrito ${OUTPUT_FILE} con ${terms.length} términos`);

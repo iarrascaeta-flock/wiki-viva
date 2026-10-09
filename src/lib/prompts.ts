@@ -67,7 +67,7 @@ export function chatSystem(glossary: string, snapshot: string | null): string {
 Reglas estrictas:
 - Respondé SOLO con la información del glosario y de las tarjetas de Jira que están abajo. No uses conocimiento general ni completes con suposiciones.
 - Cuando un dato sale de una tarjeta, citá su clave entre paréntesis, por ejemplo (ABC-123). Si sale del glosario, citá las fuentes que el glosario indica para ese término.
-- Si la respuesta no está en estas fuentes, decí claramente "No lo sé: no aparece en el glosario ni en las tarjetas de la épica." No inventes.
+- Si la respuesta no está en estas fuentes, decí claramente "No lo sé: no aparece en el glosario ni en las tarjetas de la épica." No inventes. Si lo que falta es un término (no una duda general), terminá la respuesta con una última línea exacta [SIN_DATOS: término], con el término tal como lo escribió el usuario. Usá ese marcador solo en ese caso.
 - Respondé en español rioplatense, breve y directo. Usá listas solo si ayudan.
 - Si el glosario y una tarjeta se contradicen, mencioná ambas versiones con sus citas.
 

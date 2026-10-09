@@ -71,6 +71,18 @@ export function parseGlossary(markdown: string): GlossaryTerm[] {
     .filter((t) => t.name);
 }
 
+// Formato de un término en glossary.md (el mismo que parsea parseGlossary).
+export function formatTerm(t: Omit<GlossaryTerm, "slug">): string {
+  const oneLine = (s: string) => s.replace(/\s*\n\s*/g, " ").trim();
+  return [
+    `## ${oneLine(t.name)}`,
+    `**Siglas / sinónimos:** ${t.synonyms.length > 0 ? t.synonyms.map(oneLine).join(", ") : "—"}`,
+    `**Definición:** ${oneLine(t.definition)}`,
+    ...(t.specialCases?.trim() ? [`**Casos especiales:** ${oneLine(t.specialCases)}`] : []),
+    `**Fuentes:** ${t.sources.length > 0 ? t.sources.join(", ") : "—"}`,
+  ].join("\n");
+}
+
 // Lee glossary.md. En desarrollo, si todavía no existe, usa glossary.draft.md para poder ver la página.
 export function loadGlossary(): Glossary {
   const file = path.join(process.cwd(), "glossary.md");

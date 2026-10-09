@@ -6,7 +6,7 @@ import { Chat } from "./chat";
 // a cada request en vez de prerenderizarlo en el build.
 async function ChatAtRequestTime() {
   await connection();
-  return <Chat />;
+  return <Chat jiraBaseUrl={process.env.JIRA_BASE_URL ?? ""} projectKey={process.env.JIRA_PROJECT_KEY} />;
 }
 
 export default function ChatPage() {

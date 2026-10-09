@@ -4,12 +4,18 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { extractNoData } from "@/lib/citations";
+import { MessageText } from "./message-text";
+import { SuggestForm } from "./suggest-form";
 
-export function Chat() {
+type Suggestion = { messageId: string; term: string; question: string };
+
+export function Chat({ jiraBaseUrl, projectKey }: { jiraBaseUrl: string; projectKey?: string }) {
   const { messages, sendMessage, status, error, regenerate, stop } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
   });
   const [input, setInput] = useState("");
+  const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const busy = status === "submitted" || status === "streaming";
 
@@ -39,18 +45,42 @@ export function Chat() {
             Preguntá por un término o un caso especial, por ejemplo: <em>¿qué es el hecho generador?</em>
           </p>
         )}
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={
-              m.role === "user"
-                ? "ml-auto max-w-[85%] rounded-2xl bg-neutral-900 px-4 py-2 text-white dark:bg-neutral-100 dark:text-neutral-900"
-                : "max-w-[95%] whitespace-pre-wrap leading-relaxed"
-            }
-          >
-            {m.parts.map((part, i) => (part.type === "text" ? <span key={i}>{part.text}</span> : null))}
-          </div>
-        ))}
+        {messages.map((m, index) => {
+          const raw = m.parts.map((part) => (part.type === "text" ? part.text : "")).join("");
+          if (m.role === "user") {
+            return (
+              <div
+                key={m.id}
+                className="ml-auto max-w-[85%] rounded-2xl bg-neutral-900 px-4 py-2 text-white dark:bg-neutral-100 dark:text-neutral-900"
+              >
+                {raw}
+              </div>
+            );
+          }
+          // El modelo marca con [SIN_DATOS: término] lo que no encontró; mientras llega, se oculta el marcador parcial.
+          const { text, term } = extractNoData(raw.replace(/\[SIN_DAT[^\]]*$/, ""));
+          const streamingThis = busy && index === messages.length - 1;
+          const question = messages[index - 1]?.parts.map((p) => (p.type === "text" ? p.text : "")).join("") ?? "";
+          return (
+            <div key={m.id} className="max-w-[95%] space-y-3">
+              <div className="whitespace-pre-wrap leading-relaxed">
+                <MessageText text={text} jiraBaseUrl={jiraBaseUrl} projectKey={projectKey} />
+              </div>
+              {term && !streamingThis && suggestion?.messageId !== m.id && (
+                <button
+                  type="button"
+                  onClick={() => setSuggestion({ messageId: m.id, term, question })}
+                  className="rounded-lg border border-neutral-400 px-3 py-1.5 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-900"
+                >
+                  + Agregar &quot;{term}&quot; al glosario
+                </button>
+              )}
+              {suggestion?.messageId === m.id && (
+                <SuggestForm term={suggestion.term} question={suggestion.question} onClose={() => setSuggestion(null)} />
+              )}
+            </div>
+          );
+        })}
         {status === "submitted" && (
           <p className="animate-pulse text-sm text-neutral-500">Buscando en el glosario y en Jira…</p>
         )}
