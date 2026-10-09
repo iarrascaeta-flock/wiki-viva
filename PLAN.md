@@ -131,3 +131,16 @@ Formato de cada término en el glosario:
 - [x] Repo de código público (`wiki-viva`) con historial limpio: nunca contuvo el glosario real ni datos de Jira.
 - [x] Glosario real en repo privado (`wiki-viva-data`), leído y escrito por la app con un fine-grained token limitado a ese repo.
 - [x] `glossary.example.md` con datos ficticios para correr la app sin acceso a los datos.
+
+## Mejoras futuras
+
+### Login con Microsoft 365 (Entra ID) en lugar de basic auth
+
+- [ ] Registrar la app en Microsoft Entra ID (*App registrations*) con las URLs de retorno de producción y `localhost`. Puede requerir aprobación de IT según la configuración del tenant.
+- [ ] Cargar `AUTH_MICROSOFT_ENTRA_ID_ID`, `AUTH_MICROSOFT_ENTRA_ID_SECRET` y el tenant ID en `.env.local` y Vercel.
+- [ ] Sumar Auth.js (`next-auth`) con el proveedor Microsoft Entra ID, restringido al tenant de Flock. Verificar compatibilidad con Next 16.
+- [ ] Reemplazar el basic auth de `src/proxy.ts` por el chequeo de sesión y agregar "Cerrar sesión".
+- [ ] Registrar el nombre real del usuario en los commits de "Agregar al glosario".
+- [ ] Quitar `BASIC_AUTH_*` del código y de Vercel.
+
+**Por qué:** sin contraseñas compartidas, el acceso se revoca solo al dejar la empresa (con MFA si el tenant lo exige) y queda registrado quién agrega cada término. Estaba fuera del alcance del MVP ("OAuth por usuario" en `CLAUDE.md`).
