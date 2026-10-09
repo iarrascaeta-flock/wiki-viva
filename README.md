@@ -44,6 +44,8 @@ flowchart LR
     SUGGEST -- "commit + invalida caché" --> GLOS
 ```
 
+También como imagen: [`docs/arquitectura.png`](docs/arquitectura.png). Se regenera desde el bloque de arriba con `npx @mermaid-js/mermaid-cli -i arquitectura.mmd -o docs/arquitectura.png -w 1600 -s 2 -b white`.
+
 - **El glosario real no está en este repo.** Vive en un repo privado (`GLOSSARY_REPO`) porque contiene terminología y reglas de negocio del cliente. La app lo lee con la API de GitHub y lo cachea; al agregar un término se invalida la caché. Sin `GLOSSARY_REPO`, la app usa [`glossary.example.md`](glossary.example.md), con datos ficticios.
 - **Conectores**: toda fuente implementa `SourceConnector` (`src/connectors/types.ts`). Hoy hay uno, Jira (`src/connectors/jira.ts`). Agregar una fuente = un conector nuevo + una entrada en `src/connectors/registry.ts`.
 - **LLM**: vía OpenRouter, siempre a través de `getModel()` (`src/lib/model.ts`). `LLM_MODEL` acepta una lista separada por comas de modelos de respaldo.
