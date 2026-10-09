@@ -42,5 +42,4 @@ yarn-error.log*
 next-env.d.ts
 
 # snapshots locales de Jira (datos del negocio)
-*.local.md
-*.local.json
+*.local.*
