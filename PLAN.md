@@ -134,6 +134,27 @@ Formato de cada término en el glosario:
 
 ## Mejoras futuras
 
+### Snapshot de Jira para producción (Jira con VPN / lista de IPs)
+
+**Problema:** el Jira del cliente solo acepta conexiones por VPN o desde IPs permitidas. Las funciones de Vercel salen con IPs dinámicas y Jira responde 403 ("your IP address is not listed in the IP allowlist"). Hoy el chat de producción responde solo con el glosario: sin el detalle de las tarjetas ni los títulos en las citas. En local, con VPN, funciona completo.
+
+**Descartado:** habilitar las IPs de Vercel en Jira (depende del cliente y requiere Static IPs, pago) y un servidor intermediario en la red de Flock (más infraestructura de la que justifica el MVP).
+
+**Propuesta:** generar el snapshot desde una red con acceso a Jira y publicarlo en el repo privado de datos, igual que el glosario.
+
+- [ ] `src/lib/data-repo.ts`: leer y escribir archivos de `GLOSSARY_REPO` (unificar lo que hoy hacen `glossary.ts` y `/api/suggest`).
+- [ ] `src/lib/context.ts`: separar `syncSnapshot()` (en vivo desde los conectores, para scripts locales) de `getSnapshot()` (para la app: lee `snapshot.json` del repo de datos con caché; sin repo de datos, en vivo).
+- [ ] `scripts/publish-snapshot.ts`: corre `syncSnapshot()` con VPN y sube `snapshot.json` al repo privado. La app lo toma en ~1 minuto.
+- [ ] Usar `syncSnapshot()` en `scripts/extract.ts` y `scripts/jira-check.ts`.
+- [ ] Documentar en el README el paso de publicar el snapshot (guía "Usar con otra épica").
+- [ ] Verificar en producción que el chat recibe las tarjetas y los títulos de las citas.
+
+**Alternativa a evaluar: MCP de Atlassian.** Los MCP de Jira (conectores de Claude o `mcp-atlassian` local) no los puede usar la app desplegada: corren del lado de Claude o en la PC de quien los instala. Sí sirven para generar el snapshot sin VPN ni API token, leyendo la épica desde una conversación con Claude que tenga el conector autenticado.
+
+- [ ] Probar si el MCP remoto de Atlassian accede a la épica pese a la lista de IPs del cliente.
+- [ ] Si funciona: generar y publicar `snapshot.json` desde Claude con el MCP, como alternativa a `publish-snapshot.ts`.
+- [ ] A más largo plazo: consulta en vivo desde la app vía MCP con OAuth por usuario (`SourceConnector.getTools()`), sujeto a la misma prueba de acceso.
+
 ### Modelo de LLM más capaz (pago) para el chat y la extracción
 
 Hoy se usan modelos gratis de OpenRouter (`nvidia/nemotron-3-super-120b-a12b:free`, con `google/gemma-4-31b-it:free` de respaldo). Funcionan, pero con límites claros:

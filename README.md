@@ -140,6 +140,7 @@ Vercel, con deploy automático en cada push a `main`. Cargar las mismas variable
 
 ## Limitaciones conocidas
 
+- **Jira con acceso restringido:** si el Jira solo acepta conexiones por VPN o desde una lista de IPs permitidas, la app desplegada no puede leerlo (responde 403). En ese caso el chat de producción responde **solo con el glosario**: sin el detalle de las tarjetas ni los títulos en las citas. En local, con acceso a Jira, funciona completo. La solución propuesta (publicar el snapshot de Jira en el repo privado de datos) está en [`PLAN.md`](PLAN.md) → *Mejoras futuras*.
 - **Modelos gratis:** con los modelos gratis de OpenRouter el chat responde correctamente pero corto (tiende a copiar la línea del glosario), la extracción de una épica tarda decenas de minutos y hay un cupo de 50 pedidos por día. Para mejorar redacción y velocidad alcanza con apuntar `LLM_MODEL` a un modelo pago; el resto del código no cambia. Detalle y tareas en [`PLAN.md`](PLAN.md) → *Mejoras futuras*.
 - **Una épica por despliegue:** ver [Usar con otra épica](#usar-con-otra-épica).
 - **Acceso con basic auth:** usuario y contraseña compartidos; el login con Microsoft 365 está en las mejoras futuras.
