@@ -85,6 +85,7 @@ GITHUB_TOKEN=                       # fine-grained, solo Contents: read/write en
 GITHUB_REPO=iarrascaeta-flock/wiki-viva
 BASIC_AUTH_USER=
 BASIC_AUTH_PASSWORD=
+BASIC_AUTH_USERS=                   # opcional, usuarios extra: "user:pass,user2:pass2"
 ```
 
 ## Reglas
