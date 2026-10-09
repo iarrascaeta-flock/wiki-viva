@@ -73,7 +73,7 @@ glossary.draft.md          # salida de la extracción, NO commitear sin revisar
 
 ```
 LLM_PROVIDER=openrouter
-LLM_MODEL=                 # id de OpenRouter, formato proveedor/modelo
+LLM_MODEL=                 # id de OpenRouter (proveedor/modelo); lista separada por comas = respaldos en orden
 OPENROUTER_API_KEY=
 JIRA_BASE_URL=https://empresa.atlassian.net
 JIRA_EMAIL=
