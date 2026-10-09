@@ -17,6 +17,10 @@ const TYPE_MAP: Record<string, string> = {
   "bug test": "bug_test",
 };
 
+// Tipos que no se traen (nombre original en Jira). Los casos de prueba consumen muchos tokens
+// y no aportan terminología nueva respecto de sus historias.
+const EXCLUDED_TYPES = ["TEST"];
+
 const FIELDS = ["issuetype", "summary", "description", "status", "parent", "comment", "updated"];
 const BATCH_SIZE = 50;
 
@@ -73,7 +77,9 @@ async function jiraFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-async function search(jql: string): Promise<JiraIssue[]> {
+async function search(baseJql: string): Promise<JiraIssue[]> {
+  const excluded = EXCLUDED_TYPES.map((t) => `"${t}"`).join(", ");
+  const jql = excluded ? `(${baseJql}) AND issuetype not in (${excluded})` : baseJql;
   const issues: JiraIssue[] = [];
   let nextPageToken: string | undefined;
   do {
@@ -223,6 +229,7 @@ async function sync(): Promise<SourceDoc[]> {
   const epicKey = env("JIRA_EPIC_KEY");
 
   // 1. La épica. 2. Sus hijos directos. 3. Las subtareas de esos hijos, en lotes.
+  // En los tres pasos se excluyen los EXCLUDED_TYPES.
   const epic = await search(`key = ${epicKey}`);
   const children = await search(env("JIRA_EPIC_JQL"));
   const subtasks: JiraIssue[] = [];
