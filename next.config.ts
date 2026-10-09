@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // La API del chat lee glossary.md en runtime: incluirlo en la función de Vercel.
+  outputFileTracingIncludes: { "/api/chat": ["./glossary.md"] },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
