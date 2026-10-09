@@ -11,9 +11,9 @@ Cada fase termina con un criterio de "listo" verificable. Marcar las tareas al c
 - [x] Crear `.env.example` con todas las variables de `CLAUDE.md`, sin valores.
 - [x] `src/proxy.ts` con basic auth usando `BASIC_AUTH_USER` y `BASIC_AUTH_PASSWORD` (Next 16 renombró `middleware.ts` a `proxy.ts`).
 - [x] Commit: `chore: base del proyecto`.
-- [ ] Crear el repo en GitHub (privado), agregar el remoto y hacer push de `main`. Con GitHub CLI: `gh repo create wiki-viva --private --source=. --push`.
-- [ ] Vincular con Vercel: `vercel link` o importar el repo desde el panel de Vercel.
-- [ ] Cargar las variables de entorno en Vercel (`vercel env add` o desde el panel).
+- [x] Crear el repo en GitHub (privado), agregar el remoto y hacer push de `main`. Con GitHub CLI: `gh repo create wiki-viva --private --source=. --push`.
+- [x] Vincular con Vercel: `vercel link` o importar el repo desde el panel de Vercel.
+- [x] Cargar las variables de entorno en Vercel (`vercel env add` o desde el panel).
 - [ ] Verificar que cada push a `main` dispare un deploy automático.
 
 **Listo cuando:** `npm run build` pasa, el repo está en GitHub y el deploy en Vercel pide usuario y contraseña.
