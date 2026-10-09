@@ -77,8 +77,8 @@ Formato de cada término en el glosario:
 
 ## Fase 3 — Revisión humana
 
-- [ ] Revisar el borrador a mano, corregir, borrar lo dudoso y guardarlo como `glossary.md`.
-- [ ] Commit y push.
+- [x] Revisar el borrador a mano, corregir, borrar lo dudoso y guardarlo como `glossary.md`.
+- [x] Commit y push.
 
 **Checkpoint:** si la extracción salió floja, no reintentar. Corregir a mano los 20 términos más importantes y seguir.
 
