@@ -1,5 +1,11 @@
 // Claves de issue de Jira (ej: ABC-123) y marcador de "sin datos" en las respuestas del chat.
 // Se usa del lado del cliente: no importar nada de servidor acá.
+import type { UIMessage } from "ai";
+
+// Metadata que /api/chat adjunta a cada respuesta: el título de cada tarjeta de la épica,
+// para mostrarlo junto a las claves citadas.
+export type ChatMetadata = { issueTitles?: Record<string, string> };
+export type ChatMessage = UIMessage<ChatMetadata>;
 
 export const ISSUE_KEY_RE = /\b[A-Z][A-Z0-9]+-\d+\b/g;
 const NO_DATA_RE = /\[SIN_DATOS:\s*([^\]]+)\]/;
@@ -31,4 +37,10 @@ export function extractNoData(text: string): { text: string; term?: string } {
   const match = text.match(NO_DATA_RE);
   if (!match) return { text };
   return { text: text.replace(NO_DATA_RE, "").trim(), term: match[1].trim() };
+}
+
+// Claves citadas en un texto, sin repetir y en orden de aparición.
+export function citedKeys(text: string, projectKey?: string): string[] {
+  const keys = splitCitations(text, projectKey).flatMap((s) => (s.type === "issue" ? [s.key] : []));
+  return [...new Set(keys)];
 }

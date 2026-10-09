@@ -3,8 +3,8 @@ import {
   createUIMessageStreamResponse,
   streamText,
   toUIMessageStream,
-  type UIMessage,
 } from "ai";
+import type { ChatMessage } from "@/lib/citations";
 import { getSnapshot } from "@/lib/context";
 import { loadGlossary } from "@/lib/glossary";
 import { getModel } from "@/lib/model";
@@ -22,7 +22,7 @@ function friendlyError(error: unknown): string {
 }
 
 export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json();
+  const { messages }: { messages: ChatMessage[] } = await req.json();
 
   // Si el glosario no se puede leer, el chat sigue con las tarjetas de Jira.
   let glossary = "";
@@ -34,8 +34,11 @@ export async function POST(req: Request) {
 
   // Si Jira falla, el chat sigue respondiendo con el glosario.
   let snapshot: string | null = null;
+  const issueTitles: Record<string, string> = {};
   try {
-    snapshot = (await getSnapshot()).markdown;
+    const { markdown, docs } = await getSnapshot();
+    snapshot = markdown;
+    for (const doc of docs) issueTitles[doc.id] = doc.title;
   } catch (err) {
     console.error("[chat] no se pudo leer Jira:", err instanceof Error ? err.message : err);
   }
@@ -44,8 +47,9 @@ export async function POST(req: Request) {
     model: getModel({ reasoning: false }),
     instructions: chatSystem(glossary, snapshot),
     messages: await convertToModelMessages(messages),
-    temperature: 0,
-    // Respuestas cortas y sin loops: los modelos gratis tienden a repetirse.
+    // Un poco de temperatura evita que los modelos chicos entren en loop repitiendo citas.
+    temperature: 0.3,
+    // Tope de largo y penalización por repetición: los modelos gratis tienden a repetirse.
     maxOutputTokens: 1500,
     frequencyPenalty: 0.5,
     // Si el usuario cancela o cierra la página, se deja de generar.
@@ -53,6 +57,12 @@ export async function POST(req: Request) {
   });
 
   return createUIMessageStreamResponse({
-    stream: toUIMessageStream({ stream: result.stream, onError: friendlyError }),
+    stream: toUIMessageStream({
+      stream: result.stream,
+      originalMessages: messages,
+      onError: friendlyError,
+      // Títulos de las tarjetas para mostrarlos junto a las claves citadas.
+      messageMetadata: ({ part }) => (part.type === "start" ? { issueTitles } : undefined),
+    }),
   });
 }

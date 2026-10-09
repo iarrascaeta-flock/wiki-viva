@@ -4,14 +4,14 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { extractNoData } from "@/lib/citations";
-import { MessageText } from "./message-text";
+import { type ChatMessage, extractNoData } from "@/lib/citations";
+import { MessageSources, MessageText } from "./message-text";
 import { SuggestForm } from "./suggest-form";
 
 type Suggestion = { messageId: string; term: string; question: string };
 
 export function Chat({ jiraBaseUrl, projectKey }: { jiraBaseUrl: string; projectKey?: string }) {
-  const { messages, sendMessage, status, error, regenerate, stop } = useChat({
+  const { messages, sendMessage, status, error, regenerate, stop } = useChat<ChatMessage>({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
   });
   const [input, setInput] = useState("");
@@ -64,8 +64,21 @@ export function Chat({ jiraBaseUrl, projectKey }: { jiraBaseUrl: string; project
           return (
             <div key={m.id} className="max-w-[95%] space-y-3">
               <div className="whitespace-pre-wrap leading-relaxed">
-                <MessageText text={text} jiraBaseUrl={jiraBaseUrl} projectKey={projectKey} />
+                <MessageText
+                  text={text}
+                  jiraBaseUrl={jiraBaseUrl}
+                  projectKey={projectKey}
+                  issueTitles={m.metadata?.issueTitles}
+                />
               </div>
+              {!streamingThis && (
+                <MessageSources
+                  text={text}
+                  jiraBaseUrl={jiraBaseUrl}
+                  projectKey={projectKey}
+                  issueTitles={m.metadata?.issueTitles}
+                />
+              )}
               {term && !streamingThis && suggestion?.messageId !== m.id && (
                 <button
                   type="button"
