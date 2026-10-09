@@ -138,6 +138,12 @@ Cada despliegue trabaja sobre **una épica**. Para armar la wiki de otra épica 
 
 Vercel, con deploy automático en cada push a `main`. Cargar las mismas variables en el proyecto de Vercel. Antes de pushear: `npm run build`.
 
+## Limitaciones conocidas
+
+- **Modelos gratis:** con los modelos gratis de OpenRouter el chat responde correctamente pero corto (tiende a copiar la línea del glosario), la extracción de una épica tarda decenas de minutos y hay un cupo de 50 pedidos por día. Para mejorar redacción y velocidad alcanza con apuntar `LLM_MODEL` a un modelo pago; el resto del código no cambia. Detalle y tareas en [`PLAN.md`](PLAN.md) → *Mejoras futuras*.
+- **Una épica por despliegue:** ver [Usar con otra épica](#usar-con-otra-épica).
+- **Acceso con basic auth:** usuario y contraseña compartidos; el login con Microsoft 365 está en las mejoras futuras.
+
 ## Presentación
 
 [`docs/wiki-viva-presentacion.pptx`](docs/wiki-viva-presentacion.pptx): presentación del challenge (13 slides con notas del orador): problema, solución, arquitectura, resultados, aprendizajes y próximos pasos.

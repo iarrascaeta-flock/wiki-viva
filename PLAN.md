@@ -134,6 +134,23 @@ Formato de cada término en el glosario:
 
 ## Mejoras futuras
 
+### Modelo de LLM más capaz (pago) para el chat y la extracción
+
+Hoy se usan modelos gratis de OpenRouter (`nvidia/nemotron-3-super-120b-a12b:free`, con `google/gemma-4-31b-it:free` de respaldo). Funcionan, pero con límites claros:
+
+- **Redacción del chat:** con ~130k tokens de contexto, el modelo copia la línea del glosario en vez de redactar y no respeta las instrucciones de estilo (probado con prompt reescrito, ejemplo de respuesta y temperatura 0.3). En un intento entró en loop repitiendo citas.
+- **Tiempo de extracción:** 17 lotes de ~8k tokens tardaron entre 25 y 40 minutos, con reintentos por saturación (429) y cortes por tiempo. La fusión de sinónimos con el LLM falló dos veces por timeout.
+- **Cupo:** 50 pedidos por día en total, compartidos entre la extracción y todos los usuarios del chat.
+
+Tareas:
+
+- [ ] Cargar crédito en OpenRouter y probar un modelo pago (ej: Claude Haiku para el chat por costo y velocidad; Claude Sonnet si la redacción no alcanza). Solo cambia `LLM_MODEL`; mantener uno gratis como respaldo en la lista.
+- [ ] Poner un límite de gasto en la key de OpenRouter.
+- [ ] Extracción en paralelo: con un modelo pago sin límite de pedidos, correr varios lotes a la vez (hoy son secuenciales) y bajar la actualización del glosario de decenas de minutos a pocos.
+- [ ] Reintentar la fusión de sinónimos con el LLM, que con un modelo más capaz debería completar en una sola llamada.
+- [ ] Contexto relevante por pregunta: mandar al chat solo las tarjetas relacionadas con la pregunta (búsqueda por términos del glosario) en vez de toda la épica. Mejora la redacción con cualquier modelo y baja el costo por pregunta.
+- [ ] Comparar respuestas antes y después con las preguntas de la Fase 7.
+
 ### Login con Microsoft 365 (Entra ID) en lugar de basic auth
 
 - [ ] Registrar la app en Microsoft Entra ID (*App registrations*) con las URLs de retorno de producción y `localhost`. Puede requerir aprobación de IT según la configuración del tenant.
