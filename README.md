@@ -9,18 +9,39 @@ Un LLM extrae un glosario de una épica de Jira, una persona lo revisa y el glos
 
 ## Arquitectura
 
-```
-Jira (épica + historias + subtareas) ──► scripts/extract.ts ──► glossary.draft.md ──► revisión humana
-                                                                                         │
-                                                       repo privado de datos: glossary.md ◄┘
-                                                                   │
-                         ┌─────────────────────────────────────────┴───────────┐
-                         ▼                                                     ▼
-                   Wiki (/)                                   Chat (/api/chat): glosario + snapshot
-                                                              de la épica en contexto, con citas
-                                                                       │
-                                        "Agregar al glosario" ◄────────┘
-                                        (/api/suggest: commit al repo privado)
+```mermaid
+flowchart LR
+    JIRA[("Jira Cloud<br/>épica · historias · subtareas")]
+    LLM{{"OpenRouter<br/>getModel()"}}
+
+    subgraph EXTRACCION["Extracción (local, una vez)"]
+        EXT["scripts/extract.ts<br/>extracción por lotes"]
+        DRAFT["glossary.draft.md"]
+        REV(["Revisión humana"])
+        EXT --> DRAFT --> REV
+    end
+
+    subgraph DATOS["Repo privado · wiki-viva-data"]
+        GLOS[("glossary.md")]
+    end
+
+    subgraph APP["Next.js en Vercel · basic auth"]
+        WIKI["Wiki /<br/>buscador de términos"]
+        CHATUI["Chat /chat<br/>citas con links a Jira"]
+        CHATAPI["/api/chat<br/>streamText"]
+        SUGGEST["/api/suggest<br/>Agregar al glosario"]
+        CHATUI --> CHATAPI
+    end
+
+    JIRA -- "sync()" --> EXT
+    EXT <--> LLM
+    REV --> GLOS
+    GLOS -- "API de GitHub + caché" --> WIKI
+    GLOS -- "API de GitHub + caché" --> CHATAPI
+    JIRA -- "snapshot cacheado 10 min" --> CHATAPI
+    CHATAPI <--> LLM
+    CHATUI -- "término sin datos" --> SUGGEST
+    SUGGEST -- "commit + invalida caché" --> GLOS
 ```
 
 - **El glosario real no está en este repo.** Vive en un repo privado (`GLOSSARY_REPO`) porque contiene terminología y reglas de negocio del cliente. La app lo lee con la API de GitHub y lo cachea; al agregar un término se invalida la caché. Sin `GLOSSARY_REPO`, la app usa [`glossary.example.md`](glossary.example.md), con datos ficticios.
