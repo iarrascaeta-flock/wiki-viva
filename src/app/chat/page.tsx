@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 export default function ChatPage() {
-  const { messages, sendMessage, status, error, regenerate } = useChat({
+  const { messages, sendMessage, status, error, regenerate, stop } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
   });
   const [input, setInput] = useState("");
@@ -73,13 +73,23 @@ export default function ChatPage() {
           autoFocus
           className="flex-1 rounded-lg border border-neutral-300 bg-transparent px-4 py-3 outline-none focus:border-neutral-500 dark:border-neutral-700"
         />
-        <button
-          type="submit"
-          disabled={busy || !input.trim()}
-          className="rounded-lg bg-neutral-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-40 dark:bg-white dark:text-neutral-900"
-        >
-          Enviar
-        </button>
+        {busy ? (
+          <button
+            type="button"
+            onClick={() => stop()}
+            className="rounded-lg border border-neutral-400 px-5 py-3 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-900"
+          >
+            Detener
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            className="rounded-lg bg-neutral-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-40 dark:bg-white dark:text-neutral-900"
+          >
+            Enviar
+          </button>
+        )}
       </form>
     </main>
   );

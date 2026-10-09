@@ -39,6 +39,11 @@ export async function POST(req: Request) {
     instructions: chatSystem(glossary, snapshot),
     messages: await convertToModelMessages(messages),
     temperature: 0,
+    // Respuestas cortas y sin loops: los modelos gratis tienden a repetirse.
+    maxOutputTokens: 1500,
+    frequencyPenalty: 0.5,
+    // Si el usuario cancela o cierra la página, se deja de generar.
+    abortSignal: req.signal,
   });
 
   return createUIMessageStreamResponse({
