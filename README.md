@@ -123,7 +123,14 @@ npm run dev   # http://localhost:3000
 
 ### Deploy
 
-Vercel, con deploy automático en cada push a `main`. Cargar las variables del sitio en el proyecto de Vercel. Antes de pushear: `npm run build`.
+Vercel, con dos ambientes:
+
+| Rama | Ambiente | URL |
+|---|---|---|
+| `dev` | Preview: donde se prueban los cambios | URL fija de la rama `dev` en el proyecto de Vercel |
+| `main` | Producción | Dominio de producción del proyecto |
+
+Se trabaja sobre `dev`; cuando un cambio está probado, se pasa a producción mergeando `dev` en `main`. Las otras ramas no se deployan (`vercel.json`). Los dos ambientes usan las mismas variables (Preview y Production en Vercel) y leen el mismo repo de datos, así que muestran los mismos glosarios. Antes de pushear: `npm run build`.
 
 ### Sumar una épica nueva
 

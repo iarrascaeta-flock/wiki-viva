@@ -100,6 +100,7 @@ JIRA_EPIC_KEY=ABC-100               # opcional, épica por defecto de scripts/ji
 - Los glosarios reales y cualquier dato de Jira nunca se commitean en este repo (es público): van al repo privado `GLOSSARY_REPO`. Los ejemplos en código y docs usan claves ficticias (`ABC-123`).
 - Manejar errores de Jira y GitHub con mensajes claros (en la wiki, sin romper la página; en el MCP, con `isError`).
 - Mantener el código simple. No agregar dependencias sin necesidad.
+- Ramas: se trabaja y commitea en `dev` (ambiente de preview en Vercel); a producción se pasa mergeando `dev` en `main`. Las demás ramas no se deployan (`vercel.json`).
 
 ## Comandos
 
