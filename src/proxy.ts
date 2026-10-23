@@ -13,8 +13,19 @@ function allowedUsers(): Map<string, string> {
   return users;
 }
 
+// Anti-CSRF: el navegador reenvía el basic auth en pedidos desde otros sitios, así que los POST
+// solo se aceptan desde el mismo origen y con JSON (un <form> de otro sitio no puede mandar JSON).
+function isCrossSite(request: NextRequest): boolean {
+  if (request.method === "GET" || request.method === "HEAD") return false;
+  const origin = request.headers.get("origin");
+  if (!origin || new URL(origin).host !== request.nextUrl.host) return true;
+  return !request.headers.get("content-type")?.startsWith("application/json");
+}
+
 // Basic auth para toda la app (Next 16 renombró middleware.ts a proxy.ts).
 export function proxy(request: NextRequest) {
+  if (isCrossSite(request)) return new NextResponse("Pedido no permitido", { status: 403 });
+
   const users = allowedUsers();
   if (users.size === 0) {
     return new NextResponse("Basic auth no configurado", { status: 500 });
