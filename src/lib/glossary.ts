@@ -17,6 +17,23 @@ export function glossaryPath(epicKey: string): string {
   return `${GLOSSARIES_DIR}/${epicKey}.md`;
 }
 
+// Títulos de las tarjetas citadas en "Fuentes" (clave → título). Los escribe el MCP al publicar, desde Jira,
+// para que el sitio los muestre sin consultar Jira.
+export type SourceTitles = Record<string, string>;
+
+export function sourcesPath(epicKey: string): string {
+  return `${GLOSSARIES_DIR}/${epicKey}.sources.json`;
+}
+
+export function parseSourceTitles(json: string | null | undefined): SourceTitles {
+  if (!json) return {};
+  try {
+    return JSON.parse(json) as SourceTitles;
+  } catch {
+    return {};
+  }
+}
+
 const FIELDS: Record<string, keyof GlossaryTerm> = {
   "siglas / sinónimos": "synonyms",
   "definición": "definition",

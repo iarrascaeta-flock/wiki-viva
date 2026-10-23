@@ -15,7 +15,9 @@ import {
   glossaryTitle,
   ISSUE_KEY,
   parseGlossary,
+  parseSourceTitles,
   slugify,
+  sourcesPath,
   validateGlossary,
 } from "@/lib/glossary";
 
@@ -59,6 +61,34 @@ async function setStatus(key: string, estado: EpicState, nota?: string): Promise
     },
     `épicas: ${key} → ${estado} (${responsable})`,
   );
+}
+
+// Guarda los títulos de las tarjetas citadas, sacados del snapshot de Jira, para que el sitio los muestre
+// junto a cada fuente. replace: arranca de cero (publicar); si no, suma a los que ya había (agregar_termino).
+// No es crítico: si Jira no responde, el glosario queda publicado igual y se devuelve un aviso.
+async function saveSourceTitles(clave: string, keys: string[], replace: boolean): Promise<string> {
+  try {
+    const { docs } = await getSnapshot(clave);
+    const titles = new Map(docs.map((d) => [d.id, d.title]));
+    await updateFile(
+      sourcesPath(clave),
+      (current) => {
+        const merged = replace ? {} : parseSourceTitles(current);
+        for (const key of keys) {
+          const title = titles.get(key);
+          if (title) merged[key] = title;
+        }
+        const sorted = Object.fromEntries(Object.entries(merged).sort(([a], [b]) => a.localeCompare(b)));
+        return `${JSON.stringify(sorted, null, 2)}\n`;
+      },
+      `glosario(${clave}): títulos de las fuentes`,
+    );
+    return "";
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[mcp] títulos de fuentes de ${clave}: ${message}`);
+    return `\nAviso: no se guardaron los títulos de las fuentes (${message}). Las fuentes se ven solo con la clave.`;
+  }
 }
 
 const server = new McpServer(
@@ -200,14 +230,17 @@ server.registerTool(
       const problems = validateGlossary(markdown);
       if (problems.length > 0) return failure(`No se publicó. Corregí estos problemas:\n- ${problems.join("\n- ")}`);
       const me = await currentUser();
-      const terms = parseGlossary(markdown).length;
+      const terms = parseGlossary(markdown);
       const { commitUrl } = await updateFile(
         glossaryPath(clave),
         () => `${markdown}\n`,
-        `glosario(${clave}): publicar ${terms} términos\n\nPublicado por ${me} desde el MCP.`,
+        `glosario(${clave}): publicar ${terms.length} términos\n\nPublicado por ${me} desde el MCP.`,
       );
       await setStatus(clave, "publicada");
-      return text(`Publicado: ${terms} términos en ${glossaryPath(clave)}. ${commitUrl}\nEl sitio lo muestra en ~1 minuto.`);
+      const warning = await saveSourceTitles(clave, [...new Set(terms.flatMap((t) => t.sources))], true);
+      return text(
+        `Publicado: ${terms.length} términos en ${glossaryPath(clave)}. ${commitUrl}\nEl sitio lo muestra en ~1 minuto.${warning}`,
+      );
     } catch (err) {
       return failure(err);
     }
@@ -247,7 +280,8 @@ server.registerTool(
         },
         `glosario(${clave}): agregar "${nombre}"\n\nAgregado por ${me} desde el MCP.`,
       );
-      return text(`Agregado "${nombre}" a ${glossaryPath(clave)}. ${commitUrl}`);
+      const warning = await saveSourceTitles(clave, fuentes, false);
+      return text(`Agregado "${nombre}" a ${glossaryPath(clave)}. ${commitUrl}${warning}`);
     } catch (err) {
       return failure(err);
     }

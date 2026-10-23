@@ -69,7 +69,7 @@ glossary.example.md        # glosario ficticio, se usa si no hay GLOSSARY_REPO
 glossaries/                # copia local opcional de los glosarios reales (gitignored)
 ```
 
-Repo privado de datos: `glossaries/<ÉPICA>.md` (un `# <ÉPICA> · nombre` y un `## Término` por término) y `epics.json` (estado, responsable y fecha por épica).
+Repo privado de datos: `glossaries/<ÉPICA>.md` (un `# <ÉPICA> · nombre` y un `## Término` por término), `glossaries/<ÉPICA>.sources.json` (título de cada tarjeta citada en Fuentes, lo escribe el MCP al publicar) y `epics.json` (estado, responsable y fecha por épica).
 
 ## Variables de entorno (`.env.local`, nunca commitear)
 

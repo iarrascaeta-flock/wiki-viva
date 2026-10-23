@@ -37,6 +37,7 @@ export function GlossarySearch({ epics, jiraBaseUrl }: { epics: EpicGlossary[]; 
       ),
     [epics],
   );
+  const sourceTitles = useMemo(() => Object.fromEntries(epics.map((e) => [e.key, e.sourceTitles])), [epics]);
   const q = normalize(query.trim());
   const inEpic = epic ? indexed.filter((i) => i.epic === epic) : indexed;
   const results = q ? inEpic.filter((i) => i.haystack.includes(q)) : inEpic;
@@ -92,22 +93,28 @@ export function GlossarySearch({ epics, jiraBaseUrl }: { epics: EpicGlossary[]; 
               </div>
             )}
             {t.sources.length > 0 && (
-              <p className="mt-3 text-sm text-neutral-500">
-                Fuentes:{" "}
-                {t.sources.map((key, i) => (
-                  <span key={key}>
-                    {i > 0 && ", "}
-                    <a
-                      href={`${jiraBaseUrl}/browse/${key}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-blue-600 hover:underline dark:text-blue-400"
-                    >
-                      {key}
-                    </a>
-                  </span>
-                ))}
-              </p>
+              // Con muchas fuentes, la lista arranca cerrada para no tapar el resto del término.
+              <details open={t.sources.length <= 5} className="mt-3 text-sm text-neutral-500">
+                <summary className="cursor-pointer">Fuentes ({t.sources.length})</summary>
+                <ul className="mt-1 space-y-0.5">
+                  {t.sources.map((source) => {
+                    const title = sourceTitles[key]?.[source];
+                    return (
+                      <li key={source}>
+                        <a
+                          href={`${jiraBaseUrl}/browse/${source}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-blue-600 hover:underline dark:text-blue-400"
+                        >
+                          {source}
+                        </a>
+                        {title && ` · ${title}`}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </details>
             )}
           </li>
         ))}
