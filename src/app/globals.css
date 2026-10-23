@@ -1,45 +1,41 @@
 @import "tailwindcss";
 
-/* Tokens del design system de Flock IT (brochure 2026): solo tema oscuro, jerarquía por opacidad de blanco
-   sobre color, cards de vidrio esmerilado y sin sombras. */
+/* Tokens del design system de Flock IT (brochure 2026), en la variante "gradiente atenuado + paneles opacos":
+   solo tema oscuro, fondo de marca apagado y el contenido sobre paneles opacos para que se lea bien. */
 :root {
   color-scheme: dark;
-  --naranja: #ff5102;
-  --violeta: #7f07c5;
-  --violeta-oscuro: #44016b;
-  --magenta: #c932a7;
   --negro: #0b0410;
   --text-100: rgba(255, 255, 255, 1);
   --text-80: rgba(255, 255, 255, 0.8);
-  --text-55: rgba(255, 255, 255, 0.55);
-  --surface-card: rgba(255, 255, 255, 0.1);
-  --surface-card-hover: rgba(255, 255, 255, 0.14);
-  --border-card: rgba(255, 255, 255, 0.18);
-  --border-card-strong: rgba(255, 255, 255, 0.24);
-  --divider: rgba(255, 255, 255, 0.08);
-  --link: #ffb199;
-  --bg-blob: radial-gradient(ellipse 900px 700px at 8% 6%, #ff5102 0%, #c932a7 32%, #7f07c5 58%, #0b0410 78%);
+  --text-60: rgba(255, 255, 255, 0.6);
+  --panel: #15101d;
+  --panel-inset: #211a2b;
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --pill-border: rgba(255, 255, 255, 0.28);
+  --selected: #b8286b;
+  --peach: #ff9466;
+  --bg-gradient:
+    radial-gradient(ellipse 55% 45% at 0% 0%, rgba(150, 55, 10, 0.85) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 55% at 100% 100%, #0e0a14 0%, transparent 75%),
+    linear-gradient(180deg, #6b1b5d 0%, #561a78 45%, #3b157a 70%, #1c1028 100%);
 }
 
 @theme inline {
-  --color-negro: var(--negro);
-  --color-magenta: var(--magenta);
   --color-ink: var(--text-100);
   --color-ink-muted: var(--text-80);
-  --color-ink-subtle: var(--text-55);
-  --color-card: var(--surface-card);
-  --color-card-hover: var(--surface-card-hover);
-  --color-line: var(--border-card);
-  --color-line-strong: var(--border-card-strong);
-  --color-divider: var(--divider);
-  --color-link: var(--link);
+  --color-ink-subtle: var(--text-60);
+  --color-panel: var(--panel);
+  --color-panel-inset: var(--panel-inset);
+  --color-line: var(--panel-border);
+  --color-pill: var(--pill-border);
+  --color-selected: var(--selected);
+  --color-peach: var(--peach);
   --font-sans: var(--font-zalando), "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
-/* Fondo "blob" del brochure: nunca un color plano. */
 body {
-  background: var(--bg-blob) var(--negro);
+  background: var(--bg-gradient) var(--negro);
   background-attachment: fixed;
   color: var(--text-100);
   font-family: var(--font-sans);
