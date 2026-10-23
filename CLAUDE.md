@@ -41,6 +41,7 @@ export interface SourceConnector {
   id: string;
   name: string;
   sync(epicKey: string): Promise<SourceDoc[]>;  // trae la épica completa
+  titles?(ids: string[]): Promise<Record<string, string>>;  // títulos sueltos, ej: fuentes de otra épica
 }
 ```
 

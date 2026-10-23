@@ -265,8 +265,20 @@ async function sync(epicKey: string): Promise<SourceDoc[]> {
   return docs;
 }
 
+// Títulos de tarjetas sueltas, en lotes. Las claves que no son válidas se descartan antes de armar la JQL.
+async function titles(keys: string[]): Promise<Record<string, string>> {
+  const valid = keys.filter((k) => ISSUE_KEY.test(k));
+  const result: Record<string, string> = {};
+  for (let i = 0; i < valid.length; i += BATCH_SIZE) {
+    const issues = await search(`key in (${valid.slice(i, i + BATCH_SIZE).join(", ")})`);
+    for (const issue of issues) result[issue.key] = issue.fields.summary;
+  }
+  return result;
+}
+
 export const jiraConnector: SourceConnector = {
   id: "jira",
   name: "Jira",
   sync,
+  titles,
 };
