@@ -32,7 +32,7 @@ flowchart LR
     GLOS -- "API de GitHub + caché ~1 min" --> WIKI
 ```
 
-La imagen [`docs/arquitectura.png`](docs/arquitectura.png) se regenera desde el bloque de arriba con `npx @mermaid-js/mermaid-cli -i arquitectura.mmd -o docs/arquitectura.png -w 1600 -s 2 -b white`.
+La imagen [`docs/arquitectura.png`](docs/arquitectura.png) se regenera desde el bloque de arriba con `npx @mermaid-js/mermaid-cli -i arquitectura.mmd -o docs/arquitectura.png --size 1600 -s 2 -b white`.
 
 - **Los glosarios reales no están en este repo.** Viven en un repo privado (`GLOSSARY_REPO`), uno por épica en `glossaries/<ÉPICA>.md`, porque contienen terminología y reglas de negocio del cliente. Sin `GLOSSARY_REPO`, la wiki usa una carpeta `glossaries/` local (ignorada por git) o [`glossary.example.md`](glossary.example.md), con datos ficticios.
 - **Sin IA en el servidor.** El trabajo de IA lo hace el Claude de cada mantenedor; el sitio solo lee. No hace falta key de LLM.
