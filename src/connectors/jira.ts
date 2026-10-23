@@ -229,7 +229,10 @@ function toSourceDoc(issue: JiraIssue, comments: JiraComment[]): SourceDoc {
 // JQL de los hijos de la épica. JIRA_EPIC_JQL permite cambiarla (ej: '"Epic Link" = {epic}' en
 // proyectos clásicos); {epic} se reemplaza por la clave.
 function childrenJql(epicKey: string): string {
-  return (process.env.JIRA_EPIC_JQL || "parent = {epic}").replaceAll("{epic}", epicKey);
+  const template = process.env.JIRA_EPIC_JQL || "parent = {epic}";
+  // Sin {epic} la JQL trae siempre los mismos hijos, sea cual sea la épica pedida.
+  if (!template.includes("{epic}")) throw new Error(`JIRA_EPIC_JQL tiene que incluir {epic}: "${template}"`);
+  return template.replaceAll("{epic}", epicKey);
 }
 
 async function sync(epicKey: string): Promise<SourceDoc[]> {
