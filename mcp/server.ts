@@ -6,6 +6,7 @@ import { loadEnvConfig } from "@next/env";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import type { SourceDoc } from "@/connectors/types";
 import { getSnapshot } from "@/lib/context";
 import { currentUser, getFile, listDir, updateFile } from "@/lib/data-repo";
 import {
@@ -24,7 +25,9 @@ import {
 loadEnvConfig(path.join(__dirname, ".."), false, { info: () => {}, error: console.error });
 
 const EPICS_FILE = "epics.json";
-const PAGE_CHARS = 60_000; // ~15k tokens por página de leer_epica
+// ~8k tokens por página de leer_epica. Las tarjetas con JSON o código rinden menos caracteres por token:
+// páginas de 60k caracteres superaban el límite de salida de herramientas de Claude Code (25k tokens).
+const PAGE_CHARS = 30_000;
 const STATES = ["pendiente", "en_extraccion", "en_revision", "publicada"] as const;
 
 type EpicState = (typeof STATES)[number];
@@ -89,6 +92,31 @@ async function saveSourceTitles(clave: string, keys: string[], replace: boolean)
     console.error(`[mcp] títulos de fuentes de ${clave}: ${message}`);
     return `\nAviso: no se guardaron los títulos de las fuentes (${message}). Las fuentes se ven solo con la clave.`;
   }
+}
+
+// Parte una tarjeta más larga que una página en trozos de líneas enteras; cada trozo después del primero
+// arranca con "### <clave> (continuación)". Una línea que sola supera la página (ej: un JSON) se corta.
+function splitCard(doc: SourceDoc): string[] {
+  if (doc.content.length <= PAGE_CHARS) return [doc.content];
+  const header = `### ${doc.id} (continuación)`;
+  const max = PAGE_CHARS - header.length - 1;
+  const parts: string[] = [];
+  let current: string[] = [];
+  let size = 0;
+  for (const line of doc.content.split("\n")) {
+    for (let i = 0; i === 0 || i < line.length; i += max) {
+      const piece = line.slice(i, i + max);
+      if (current.length > 0 && size + piece.length + 1 > max) {
+        parts.push(current.join("\n"));
+        current = [header];
+        size = header.length;
+      }
+      current.push(piece);
+      size += piece.length + 1;
+    }
+  }
+  parts.push(current.join("\n"));
+  return parts;
 }
 
 const server = new McpServer(
@@ -164,7 +192,7 @@ server.registerTool(
   {
     title: "Leer las tarjetas de una épica",
     description:
-      "Trae de Jira la épica con sus historias, subtareas, bugs y comentarios, en markdown y por páginas de ~15k tokens. " +
+      "Trae de Jira la épica con sus historias, subtareas, bugs y comentarios, en markdown y por páginas de ~8k tokens. " +
       "Se cachea 10 minutos. Requiere acceso a Jira (VPN).",
     inputSchema: {
       clave: epicKey,
@@ -175,11 +203,12 @@ server.registerTool(
     try {
       const { docs, approxTokens } = await getSnapshot(clave);
       // Páginas armadas con tarjetas enteras, en el orden de lectura (cada historia seguida de sus subtareas).
+      // Una tarjeta que no entra sola en una página se parte en trozos.
       const pages: string[] = [];
-      for (const doc of docs) {
+      for (const part of docs.flatMap(splitCard)) {
         const last = pages.at(-1);
-        if (last !== undefined && last.length + doc.content.length <= PAGE_CHARS) pages[pages.length - 1] += `\n\n${doc.content}`;
-        else pages.push(doc.content);
+        if (last !== undefined && last.length + part.length <= PAGE_CHARS) pages[pages.length - 1] += `\n\n${part}`;
+        else pages.push(part);
       }
       if (pagina > pages.length) return failure(`${clave} tiene ${pages.length} páginas.`);
       const header =
