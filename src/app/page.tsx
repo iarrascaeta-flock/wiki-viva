@@ -17,22 +17,23 @@ export default async function WikiPage() {
   const jiraBaseUrl = process.env.JIRA_BASE_URL ?? "";
 
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
-      <header className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Wiki viva</h1>
-        <p className="mt-1 text-sm text-neutral-500">Terminología y casos especiales del negocio, por épica</p>
+    <main className="mx-auto w-full max-w-[1180px] flex-1 px-4 py-10 md:px-14">
+      <header className="mb-12">
+        {/* eslint-disable-next-line @next/next/no-img-element -- SVG estático del design system */}
+        <img src="/flock-wordmark-white.svg" alt="Flock" width={109} height={28} className="h-7 w-auto" />
+        <p className="mt-10 text-xs font-bold tracking-[0.12em] text-ink-muted uppercase">Flock | Wiki viva</p>
+        <h1 className="mt-3 text-[46px] leading-[1.08] font-extrabold tracking-[-0.01em]">Glosario de negocio</h1>
+        <p className="mt-3 text-[16.5px] text-ink-muted">Terminología y casos especiales, por épica.</p>
       </header>
 
       {notice && (
-        <p className="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
-          {notice}
-        </p>
+        <p className="mb-6 rounded-[14px] border border-line bg-panel px-4 py-3 text-[13.5px] text-ink-muted">{notice}</p>
       )}
 
       {!glossaries ? (
-        <p className="text-red-700 dark:text-red-300">No se pudo cargar el glosario. Probá de nuevo en unos minutos.</p>
+        <p className="text-peach">No pudimos cargar el glosario. Probá de nuevo en unos minutos.</p>
       ) : epics.every((e) => e.terms.length === 0) ? (
-        <p className="text-neutral-500">Todavía no hay términos en el glosario.</p>
+        <p className="text-ink-muted">Todavía no hay términos en el glosario.</p>
       ) : (
         <GlossarySearch epics={epics} jiraBaseUrl={jiraBaseUrl} />
       )}
