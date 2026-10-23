@@ -1,86 +1,53 @@
 @import "tailwindcss";
 
-/* Tokens del design system de Flock IT (tokens.json). Claro es el tema de trabajo; oscuro se apoya en brand-night. */
+/* Tokens del design system de Flock IT (brochure 2026): solo tema oscuro, jerarquía por opacidad de blanco
+   sobre color, cards de vidrio esmerilado y sin sombras. */
 :root {
-  color-scheme: light;
-  --brand-night: #180026;
-  --bg: #f7f7f7;
-  --surface: #ffffff;
-  --surface-subtle: #f0f0f0;
-  --surface-brand: #180026;
-  --ink: #1a1a1a;
-  --ink-muted: #4d4d4d;
-  --ink-subtle: #666666;
-  --on-brand: #ffffff;
-  --border: #e6e6e6;
-  --border-strong: #808080;
-  --primary: #6727df;
-  --primary-hover: #5821be;
-  --primary-text: #6727df;
-  --primary-subtle: #f0eafc;
-  --focus: #c45bd1;
-  --warning: #9a5b00;
-  --warning-subtle: #fff1d6;
-  --danger: #c4123f;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --bg: #180026;
-    --surface: #2f1a3c;
-    --surface-subtle: #260f33;
-    --surface-brand: #44016b;
-    --ink: #ffffff;
-    --ink-muted: #c5bfc9;
-    --ink-subtle: #a399a8;
-    --border: #463351;
-    --border-strong: #8c8092;
-    --primary: #8d6bf4;
-    --primary-hover: #a489f6;
-    --primary-text: #a489f6;
-    --primary-subtle: #44016b;
-    --warning: #ffc266;
-    --warning-subtle: #3d2a0a;
-    --danger: #ff7a9c;
-    --shadow-sm: none;
-  }
+  color-scheme: dark;
+  --naranja: #ff5102;
+  --violeta: #7f07c5;
+  --violeta-oscuro: #44016b;
+  --magenta: #c932a7;
+  --negro: #0b0410;
+  --text-100: rgba(255, 255, 255, 1);
+  --text-80: rgba(255, 255, 255, 0.8);
+  --text-55: rgba(255, 255, 255, 0.55);
+  --surface-card: rgba(255, 255, 255, 0.1);
+  --surface-card-hover: rgba(255, 255, 255, 0.14);
+  --border-card: rgba(255, 255, 255, 0.18);
+  --border-card-strong: rgba(255, 255, 255, 0.24);
+  --divider: rgba(255, 255, 255, 0.08);
+  --link: #ffb199;
+  --bg-blob: radial-gradient(ellipse 900px 700px at 8% 6%, #ff5102 0%, #c932a7 32%, #7f07c5 58%, #0b0410 78%);
 }
 
 @theme inline {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-subtle: var(--surface-subtle);
-  --color-surface-brand: var(--surface-brand);
-  --color-ink: var(--ink);
-  --color-ink-muted: var(--ink-muted);
-  --color-ink-subtle: var(--ink-subtle);
-  --color-on-brand: var(--on-brand);
-  --color-line: var(--border);
-  --color-line-strong: var(--border-strong);
-  --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-primary-text: var(--primary-text);
-  --color-primary-subtle: var(--primary-subtle);
-  --color-focus: var(--focus);
-  --color-warning: var(--warning);
-  --color-warning-subtle: var(--warning-subtle);
-  --color-danger: var(--danger);
-  --shadow-card: var(--shadow-sm);
-  --font-sans: var(--font-zalando), system-ui, sans-serif;
-  --font-heading: var(--font-zalando-semi), var(--font-zalando), system-ui, sans-serif;
+  --color-negro: var(--negro);
+  --color-magenta: var(--magenta);
+  --color-ink: var(--text-100);
+  --color-ink-muted: var(--text-80);
+  --color-ink-subtle: var(--text-55);
+  --color-card: var(--surface-card);
+  --color-card-hover: var(--surface-card-hover);
+  --color-line: var(--border-card);
+  --color-line-strong: var(--border-card-strong);
+  --color-divider: var(--divider);
+  --color-link: var(--link);
+  --font-sans: var(--font-zalando), "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
+/* Fondo "blob" del brochure: nunca un color plano. */
 body {
-  background: var(--bg);
-  color: var(--ink);
+  background: var(--bg-blob) var(--negro);
+  background-attachment: fixed;
+  color: var(--text-100);
   font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
 }
 
-/* Foco: anillo Lavender de 2px con 2px de separación, siempre visible con teclado. */
 :focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 2px solid var(--text-100);
   outline-offset: 2px;
 }

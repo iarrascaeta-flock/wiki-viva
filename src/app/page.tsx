@@ -17,34 +17,26 @@ export default async function WikiPage() {
   const jiraBaseUrl = process.env.JIRA_BASE_URL ?? "";
 
   return (
-    <>
-      <header className="sticky top-0 z-40 bg-surface-brand text-on-brand">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-4 px-4 md:px-8">
-          {/* eslint-disable-next-line @next/next/no-img-element -- SVG estático del design system */}
-          <img src="/flock-logo-white.svg" alt="Flock" width={101} height={26} className="h-6.5 w-auto" />
-          <span className="h-6 w-px bg-white/30" aria-hidden="true" />
-          <span className="font-heading text-base">Wiki viva</span>
-        </div>
+    <main className="mx-auto w-full max-w-[1180px] flex-1 px-4 py-10 md:px-14">
+      <header className="mb-12">
+        {/* eslint-disable-next-line @next/next/no-img-element -- SVG estático del design system */}
+        <img src="/flock-wordmark-white.svg" alt="Flock" width={109} height={28} className="h-7 w-auto" />
+        <p className="mt-10 text-xs tracking-[0.12em] text-ink-subtle uppercase">Flock | Wiki viva</p>
+        <h1 className="mt-3 text-[42px] leading-[1.08] font-extrabold tracking-[-0.01em]">Glosario de negocio</h1>
+        <p className="mt-3 text-[16.5px] text-ink-muted">Terminología y casos especiales, por épica.</p>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 md:px-8">
-        <div className="mb-8">
-          <h1 className="font-heading text-[28px] leading-8 font-semibold">Glosario de negocio</h1>
-          <p className="mt-1 text-ink-muted">Terminología y casos especiales, por épica</p>
-        </div>
+      {notice && (
+        <p className="mb-6 rounded-[14px] border border-line bg-card px-4 py-3 text-[13.5px] text-ink-muted">{notice}</p>
+      )}
 
-        {notice && (
-          <p className="mb-6 rounded-[10px] bg-warning-subtle px-4 py-3 text-sm text-warning">{notice}</p>
-        )}
-
-        {!glossaries ? (
-          <p className="text-danger">No pudimos cargar el glosario. Probá de nuevo en unos minutos.</p>
-        ) : epics.every((e) => e.terms.length === 0) ? (
-          <p className="text-ink-muted">Todavía no hay términos en el glosario.</p>
-        ) : (
-          <GlossarySearch epics={epics} jiraBaseUrl={jiraBaseUrl} />
-        )}
-      </main>
-    </>
+      {!glossaries ? (
+        <p className="text-link">No pudimos cargar el glosario. Probá de nuevo en unos minutos.</p>
+      ) : epics.every((e) => e.terms.length === 0) ? (
+        <p className="text-ink-muted">Todavía no hay términos en el glosario.</p>
+      ) : (
+        <GlossarySearch epics={epics} jiraBaseUrl={jiraBaseUrl} />
+      )}
+    </main>
   );
 }
