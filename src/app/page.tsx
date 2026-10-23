@@ -17,7 +17,7 @@ export default async function WikiPage() {
   const jiraBaseUrl = process.env.JIRA_BASE_URL ?? "";
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
       <header className="mb-8">
         <h1 className="text-3xl font-semibold tracking-tight">Wiki viva</h1>
         <p className="mt-1 text-sm text-neutral-500">Terminología y casos especiales del negocio, por épica</p>
