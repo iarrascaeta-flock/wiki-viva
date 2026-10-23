@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Sin GLOSSARY_REPO, la API del chat usa el glosario de ejemplo: incluirlo en la función de Vercel.
-  outputFileTracingIncludes: { "/api/chat": ["./glossary.example.md"] },
+  // Sin GLOSSARY_REPO, la wiki usa el glosario de ejemplo: incluirlo en la función de Vercel.
+  outputFileTracingIncludes: { "/": ["./glossary.example.md"] },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

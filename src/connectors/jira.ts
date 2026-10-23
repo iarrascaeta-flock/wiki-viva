@@ -1,3 +1,4 @@
+import { ISSUE_KEY } from "@/lib/glossary";
 import type { SourceConnector, SourceDoc } from "./types";
 
 // Nombres de tipo de Jira (en minúscula) → tipo normalizado.
@@ -225,13 +226,21 @@ function toSourceDoc(issue: JiraIssue, comments: JiraComment[]): SourceDoc {
   };
 }
 
-async function sync(): Promise<SourceDoc[]> {
-  const epicKey = env("JIRA_EPIC_KEY");
+// JQL de los hijos de la épica. JIRA_EPIC_JQL permite cambiarla (ej: '"Epic Link" = {epic}' en
+// proyectos clásicos); {epic} se reemplaza por la clave.
+function childrenJql(epicKey: string): string {
+  return (process.env.JIRA_EPIC_JQL || "parent = {epic}").replaceAll("{epic}", epicKey);
+}
+
+async function sync(epicKey: string): Promise<SourceDoc[]> {
+  // La clave va dentro de la JQL: validarla evita inyectar consultas.
+  if (!ISSUE_KEY.test(epicKey)) throw new Error(`Clave de épica inválida: ${epicKey}`);
 
   // 1. La épica. 2. Sus hijos directos. 3. Las subtareas de esos hijos, en lotes.
   // En los tres pasos se excluyen los EXCLUDED_TYPES.
   const epic = await search(`key = ${epicKey}`);
-  const children = await search(env("JIRA_EPIC_JQL"));
+  if (epic.length === 0) throw new Error(`No se encontró la épica ${epicKey} en Jira`);
+  const children = await search(childrenJql(epicKey));
   const subtasks: JiraIssue[] = [];
   for (let i = 0; i < children.length; i += BATCH_SIZE) {
     const keys = children.slice(i, i + BATCH_SIZE).map((c) => c.key);

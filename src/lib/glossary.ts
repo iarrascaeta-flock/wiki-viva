@@ -1,6 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
-import { cacheLife, cacheTag } from "next/cache";
+// Formato de los glosarios: un archivo glossaries/<ÉPICA>.md por épica, con un título "# ..." y
+// secciones "## Término" con campos "**Campo:** valor". Sin dependencias de Next: lo usan el sitio y el MCP.
 
 export interface GlossaryTerm {
   slug: string;
@@ -11,16 +10,12 @@ export interface GlossaryTerm {
   sources: string[];
 }
 
-export interface Glossary {
-  markdown: string;
-  terms: GlossaryTerm[];
-  // De dónde salió: el repo privado de datos, un glossary.md local, el borrador (solo en
-  // desarrollo) o el ejemplo ficticio del repo público.
-  source: "github" | "local" | "draft" | "example";
-}
+export const GLOSSARIES_DIR = "glossaries";
+export const ISSUE_KEY = /^[A-Z][A-Z0-9]+-\d+$/;
 
-export const GLOSSARY_TAG = "glossary";
-export const GLOSSARY_FILE = "glossary.md";
+export function glossaryPath(epicKey: string): string {
+  return `${GLOSSARIES_DIR}/${epicKey}.md`;
+}
 
 const FIELDS: Record<string, keyof GlossaryTerm> = {
   "siglas / sinónimos": "synonyms",
@@ -43,6 +38,11 @@ function splitList(value: string): string[] {
     .split(",")
     .map((s) => s.trim())
     .filter((s) => s && s !== "—" && s !== "-");
+}
+
+// Título del glosario: la primera línea "# ...", si la hay.
+export function glossaryTitle(markdown: string): string | undefined {
+  return markdown.match(/^# (.+)$/m)?.[1].trim();
 }
 
 // Parsea el glosario por secciones "## Término" con campos "**Campo:** valor" (pueden ocupar varias líneas).
@@ -77,7 +77,26 @@ export function parseGlossary(markdown: string): GlossaryTerm[] {
     .filter((t) => t.name);
 }
 
-// Formato de un término en glossary.md (el mismo que parsea parseGlossary).
+// Problemas de formato que impiden publicar: lista vacía si el glosario está bien.
+export function validateGlossary(markdown: string): string[] {
+  const terms = parseGlossary(markdown);
+  if (terms.length === 0) return ['No hay términos: cada uno va en una sección "## Término".'];
+  const problems: string[] = [];
+  const seen = new Map<string, string>();
+  for (const t of terms) {
+    if (!t.definition) problems.push(`"${t.name}" no tiene **Definición:**.`);
+    const invalid = t.sources.filter((s) => !ISSUE_KEY.test(s));
+    if (invalid.length > 0) problems.push(`"${t.name}" tiene fuentes que no son claves de Jira: ${invalid.join(", ")}.`);
+    for (const slug of [t.slug, ...t.synonyms.map(slugify)]) {
+      const other = seen.get(slug);
+      if (other && other !== t.name) problems.push(`"${t.name}" repite un nombre o sinónimo de "${other}".`);
+      seen.set(slug, t.name);
+    }
+  }
+  return problems;
+}
+
+// Formato de un término (el mismo que parsea parseGlossary).
 export function formatTerm(t: Omit<GlossaryTerm, "slug">): string {
   const oneLine = (s: string) => s.replace(/\s*\n\s*/g, " ").trim();
   return [
@@ -87,41 +106,4 @@ export function formatTerm(t: Omit<GlossaryTerm, "slug">): string {
     ...(t.specialCases?.trim() ? [`**Casos especiales:** ${oneLine(t.specialCases)}`] : []),
     `**Fuentes:** ${t.sources.length > 0 ? t.sources.join(", ") : "—"}`,
   ].join("\n");
-}
-
-// Lee el glosario de GLOSSARY_REPO (repo privado) vía la API de GitHub. Sin GLOSSARY_REPO, usa un
-// glossary.md local, el borrador (solo en desarrollo) o glossary.example.md.
-// Se cachea con el tag GLOSSARY_TAG: /api/suggest lo invalida al agregar un término.
-export async function loadGlossary(): Promise<Glossary> {
-  "use cache";
-  cacheTag(GLOSSARY_TAG);
-  cacheLife("hours");
-
-  const repo = process.env.GLOSSARY_REPO;
-  if (repo) {
-    const res = await fetch(`https://api.github.com/repos/${repo}/contents/${GLOSSARY_FILE}`, {
-      headers: {
-        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-        Accept: "application/vnd.github.raw+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    });
-    if (!res.ok) throw new Error(`No se pudo leer el glosario de GitHub (${res.status})`);
-    const markdown = await res.text();
-    return { markdown, terms: parseGlossary(markdown), source: "github" };
-  }
-
-  const candidates: [string, Glossary["source"]][] = [
-    [GLOSSARY_FILE, "local"],
-    ...(process.env.NODE_ENV === "development" ? [["glossary.draft.md", "draft"] as [string, Glossary["source"]]] : []),
-    ["glossary.example.md", "example"],
-  ];
-  for (const [file, source] of candidates) {
-    const full = path.join(process.cwd(), file);
-    if (existsSync(full)) {
-      const markdown = readFileSync(full, "utf8");
-      return { markdown, terms: parseGlossary(markdown), source };
-    }
-  }
-  return { markdown: "", terms: [], source: "example" };
 }

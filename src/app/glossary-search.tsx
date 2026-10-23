@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { GlossaryTerm } from "@/lib/glossary";
+import type { EpicGlossary } from "@/lib/load-glossaries";
 
 function normalize(s: string): string {
   return s
@@ -21,18 +21,43 @@ function Inline({ text }: { text: string }) {
   );
 }
 
-export function GlossarySearch({ terms, jiraBaseUrl }: { terms: GlossaryTerm[]; jiraBaseUrl: string }) {
+export function GlossarySearch({ epics, jiraBaseUrl }: { epics: EpicGlossary[]; jiraBaseUrl: string }) {
   const [query, setQuery] = useState("");
+  const [epic, setEpic] = useState(""); // "" = todas las épicas
 
   const indexed = useMemo(
-    () => terms.map((t) => ({ term: t, haystack: normalize([t.name, ...t.synonyms, t.definition].join(" ")) })),
-    [terms],
+    () =>
+      epics.flatMap((e) =>
+        e.terms.map((t) => ({
+          term: t,
+          epic: e.key,
+          id: `${e.key.toLowerCase()}-${t.slug}`,
+          haystack: normalize([t.name, ...t.synonyms, t.definition].join(" ")),
+        })),
+      ),
+    [epics],
   );
   const q = normalize(query.trim());
-  const results = q ? indexed.filter((i) => i.haystack.includes(q)).map((i) => i.term) : terms;
+  const inEpic = epic ? indexed.filter((i) => i.epic === epic) : indexed;
+  const results = q ? inEpic.filter((i) => i.haystack.includes(q)) : inEpic;
 
   return (
     <div>
+      {epics.length > 1 && (
+        <select
+          value={epic}
+          onChange={(e) => setEpic(e.target.value)}
+          aria-label="Épica"
+          className="mb-3 w-full rounded-lg border border-neutral-300 bg-transparent px-4 py-2 dark:border-neutral-700"
+        >
+          <option value="">Todas las épicas</option>
+          {epics.map((e) => (
+            <option key={e.key} value={e.key}>
+              {e.title}
+            </option>
+          ))}
+        </select>
+      )}
       <input
         type="search"
         value={query}
@@ -42,16 +67,17 @@ export function GlossarySearch({ terms, jiraBaseUrl }: { terms: GlossaryTerm[]; 
         className="w-full rounded-lg border border-neutral-300 bg-transparent px-4 py-3 outline-none focus:border-neutral-500 dark:border-neutral-700"
       />
       <p className="mt-2 mb-6 text-sm text-neutral-500">
-        {results.length} de {terms.length} términos
+        {results.length} de {inEpic.length} términos
       </p>
 
       <ul className="space-y-4">
-        {results.map((t) => (
-          <li key={t.slug} id={t.slug} className="rounded-lg border border-neutral-200 p-5 dark:border-neutral-800">
+        {results.map(({ term: t, epic: key, id }) => (
+          <li key={id} id={id} className="rounded-lg border border-neutral-200 p-5 dark:border-neutral-800">
             <h2 className="text-lg font-semibold">
-              <a href={`#${t.slug}`} className="hover:underline">
+              <a href={`#${id}`} className="hover:underline">
                 {t.name}
               </a>
+              {epics.length > 1 && !epic && <span className="ml-2 text-sm font-normal text-neutral-500">{key}</span>}
             </h2>
             {t.synonyms.length > 0 && (
               <p className="mt-1 text-sm text-neutral-500">También: {t.synonyms.join(", ")}</p>
