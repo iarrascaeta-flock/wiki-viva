@@ -13,4 +13,5 @@ export interface SourceConnector {
   id: string;
   name: string;
   sync(epicKey: string): Promise<SourceDoc[]>; // trae la épica completa (la usa el MCP)
+  titles?(ids: string[]): Promise<Record<string, string>>; // títulos de documentos sueltos, ej: fuentes de otra épica
 }

@@ -6,6 +6,7 @@ import { loadEnvConfig } from "@next/env";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { connectors } from "@/connectors/registry";
 import type { SourceDoc } from "@/connectors/types";
 import { getSnapshot } from "@/lib/context";
 import { currentUser, getFile, listDir, updateFile } from "@/lib/data-repo";
@@ -66,13 +67,19 @@ async function setStatus(key: string, estado: EpicState, nota?: string): Promise
   );
 }
 
-// Guarda los títulos de las tarjetas citadas, sacados del snapshot de Jira, para que el sitio los muestre
-// junto a cada fuente. replace: arranca de cero (publicar); si no, suma a los que ya había (agregar_termino).
+// Guarda los títulos de las tarjetas citadas para que el sitio los muestre junto a cada fuente. Salen del
+// snapshot de la épica; las fuentes de otras épicas se buscan aparte en los conectores.
+// replace: arranca de cero (publicar); si no, suma a los que ya había (agregar_termino).
 // No es crítico: si Jira no responde, el glosario queda publicado igual y se devuelve un aviso.
 async function saveSourceTitles(clave: string, keys: string[], replace: boolean): Promise<string> {
   try {
     const { docs } = await getSnapshot(clave);
     const titles = new Map(docs.map((d) => [d.id, d.title]));
+    const missing = keys.filter((k) => !titles.has(k));
+    for (const connector of connectors) {
+      if (missing.length === 0 || !connector.titles) continue;
+      for (const [key, title] of Object.entries(await connector.titles(missing))) titles.set(key, title);
+    }
     await updateFile(
       sourcesPath(clave),
       (current) => {
