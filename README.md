@@ -90,7 +90,7 @@ En Claude, usar el prompt **`armar_glosario`** con la clave de la épica (en Cla
 |---|---|
 | `listar_epicas` | Épicas con glosario y su estado (quién la tiene, en qué etapa). |
 | `estado_epica` | Cambia el estado (`pendiente`, `en_extraccion`, `en_revision`, `publicada`). Si otra persona la tiene en curso, falla salvo `forzar`. |
-| `leer_epica` | Épica, historias, subtareas, bugs y comentarios en markdown, por páginas de ~15k tokens. Cache de 10 minutos. |
+| `leer_epica` | Épica, historias, subtareas, bugs y comentarios en markdown, por páginas de ~8k tokens. Cache de 10 minutos. |
 | `leer_glosario` | Glosario publicado de una épica. |
 | `publicar_glosario` | Reemplaza el glosario completo. Valida el formato antes de escribir (definiciones, fuentes, duplicados). |
 | `agregar_termino` | Suma un término puntual. Falla si el nombre o un sinónimo ya existe. |
