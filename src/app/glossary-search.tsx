@@ -35,10 +35,8 @@ function Chevron({ open }: { open: boolean }) {
 }
 
 function itemClass(selected: boolean): string {
-  return `w-full rounded-md px-2 py-1.5 text-left ${
-    selected
-      ? "bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
-      : "text-neutral-800 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+  return `w-full rounded-[10px] px-3 py-2 text-left font-heading ${
+    selected ? "bg-primary-subtle text-primary-text" : "text-ink hover:bg-surface-subtle"
   }`;
 }
 
@@ -101,24 +99,24 @@ export function GlossarySearch({ epics, jiraBaseUrl }: { epics: EpicGlossary[]; 
   }
 
   return (
-    <div className="lg:grid lg:grid-cols-[18rem_1fr] lg:gap-8">
+    <div className="lg:grid lg:grid-cols-[18rem_1fr] lg:gap-10">
       <button
         type="button"
         onClick={() => setNavOpen((o) => !o)}
         aria-expanded={navOpen}
-        className="mb-4 flex w-full items-center justify-between rounded-lg border border-neutral-300 px-4 py-2 text-neutral-800 lg:hidden dark:border-neutral-700 dark:text-neutral-200"
+        className="mb-4 flex h-10 w-full items-center justify-between rounded-full border border-line-strong bg-surface px-5 font-heading text-sm text-ink lg:hidden"
       >
         <span>{epic ? names[epic] : "Todas las épicas"}</span>
-        <span className="text-sm text-neutral-500">Épicas ({epics.length})</span>
+        <span className="text-ink-muted">Épicas ({epics.length})</span>
       </button>
 
       <nav
         aria-label="Épicas"
-        className={`${navOpen ? "block" : "hidden"} mb-6 text-sm lg:sticky lg:top-6 lg:mb-0 lg:block lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto`}
+        className={`${navOpen ? "block" : "hidden"} mb-6 rounded-[20px] border border-line bg-surface p-2.5 text-sm shadow-card lg:sticky lg:top-22 lg:mb-0 lg:block lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto`}
       >
         <button type="button" onClick={() => selectEpic("")} className={itemClass(epic === "")}>
           <span className="font-medium">Todas las épicas</span>
-          <span className="ml-1 text-neutral-500">({matching.length})</span>
+          <span className="ml-1 text-ink-subtle">({matching.length})</span>
         </button>
         <ul className="mt-1 space-y-0.5">
           {epics.map((e) => {
@@ -132,19 +130,19 @@ export function GlossarySearch({ epics, jiraBaseUrl }: { epics: EpicGlossary[]; 
                     onClick={() => toggle(e.key)}
                     aria-expanded={isOpen}
                     aria-label={`${isOpen ? "Contraer" : "Expandir"} ${names[e.key]}`}
-                    className="mt-1.5 rounded p-0.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+                    className="mt-2 rounded-full p-1 text-ink-muted hover:bg-surface-subtle hover:text-ink"
                   >
                     <Chevron open={isOpen} />
                   </button>
                   <button type="button" onClick={() => selectEpic(e.key)} className={itemClass(epic === e.key)}>
                     <span className="block font-medium leading-snug">{names[e.key]}</span>
-                    <span className="block text-xs text-neutral-500">
+                    <span className="block font-sans text-xs text-ink-subtle">
                       {e.key} · {items.length} {items.length === 1 ? "término" : "términos"}
                     </span>
                   </button>
                 </div>
                 {isOpen && (
-                  <ul className="mt-0.5 mb-1 ml-3 space-y-0.5 border-l border-neutral-200 pl-3 dark:border-neutral-800">
+                  <ul className="mt-0.5 mb-1 ml-4 space-y-0.5 border-l border-line pl-3">
                     {items.map((i) => (
                       <li key={i.id}>
                         <a
@@ -153,13 +151,13 @@ export function GlossarySearch({ epics, jiraBaseUrl }: { epics: EpicGlossary[]; 
                             ev.preventDefault();
                             goToTerm(e.key, i.id);
                           }}
-                          className="block rounded px-2 py-1 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+                          className="block rounded-[10px] px-2.5 py-1.5 text-ink-muted hover:bg-surface-subtle hover:text-ink"
                         >
                           {i.term.name}
                         </a>
                       </li>
                     ))}
-                    {items.length === 0 && <li className="px-2 py-1 text-neutral-500">Sin coincidencias</li>}
+                    {items.length === 0 && <li className="px-2.5 py-1.5 text-ink-subtle">Sin coincidencias</li>}
                   </ul>
                 )}
               </li>
@@ -175,39 +173,45 @@ export function GlossarySearch({ epics, jiraBaseUrl }: { epics: EpicGlossary[]; 
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar por término, sigla o definición…"
           autoFocus
-          className="w-full rounded-lg border border-neutral-300 bg-transparent px-4 py-3 outline-none focus:border-neutral-500 dark:border-neutral-700"
+          className="h-12 w-full rounded-full border border-line-strong bg-surface px-6 text-base text-ink placeholder:text-ink-subtle"
         />
-        <p className="mt-2 mb-6 text-sm text-neutral-500">
+        <p className="mt-3 mb-6 px-1 text-sm text-ink-muted">
           {results.length} de {total} términos{epic && ` en ${names[epic]}`}
         </p>
 
         <ul className="space-y-4">
           {results.map(({ term: t, epic: key, id }) => (
-            <li key={id} id={id} className="scroll-mt-6 rounded-lg border border-neutral-200 p-5 dark:border-neutral-800">
-              <h2 className="text-lg font-semibold">
+            <li key={id} id={id} className="scroll-mt-24 rounded-[20px] border border-line bg-surface p-6 shadow-card">
+              <h2 className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-heading text-lg leading-6 font-semibold">
                 <a href={`#${id}`} className="hover:underline">
                   {t.name}
                 </a>
                 {epics.length > 1 && !epic && (
-                  <span className="ml-2 text-sm font-normal text-neutral-500">{names[key]}</span>
+                  <span className="rounded-full bg-primary-subtle px-2.5 py-0.5 text-xs font-normal text-primary-text">{names[key]}</span>
                 )}
               </h2>
               {t.synonyms.length > 0 && (
-                <p className="mt-1 text-sm text-neutral-500">También: {t.synonyms.join(", ")}</p>
+                <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="También">
+                  {t.synonyms.map((s) => (
+                    <li key={s} className="rounded-full border border-line px-2.5 py-0.5 text-xs text-ink-muted">
+                      {s}
+                    </li>
+                  ))}
+                </ul>
               )}
-              <p className="mt-3 leading-relaxed">
+              <p className="mt-4 leading-relaxed text-ink">
                 <Inline text={t.definition} />
               </p>
               {t.specialCases && (
-                <div className="mt-3 rounded-md bg-neutral-100 px-3 py-2 text-sm dark:bg-neutral-900">
+                <div className="mt-4 rounded-[10px] bg-surface-subtle px-4 py-3 text-sm text-ink">
                   <span className="font-medium">Casos especiales: </span>
                   <Inline text={t.specialCases} />
                 </div>
               )}
               {t.sources.length > 0 && (
                 // Con muchas fuentes, la lista arranca cerrada para no tapar el resto del término.
-                <details open={t.sources.length <= 5} className="mt-3 text-sm text-neutral-500">
-                  <summary className="cursor-pointer">Fuentes ({t.sources.length})</summary>
+                <details open={t.sources.length <= 5} className="mt-4 text-sm text-ink-muted">
+                  <summary className="cursor-pointer font-heading">Fuentes ({t.sources.length})</summary>
                   <ul className="mt-1 space-y-0.5">
                     {t.sources.map((source) => {
                       const title = sourceTitles[key]?.[source];
@@ -217,7 +221,7 @@ export function GlossarySearch({ epics, jiraBaseUrl }: { epics: EpicGlossary[]; 
                             href={`${jiraBaseUrl}/browse/${source}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-blue-600 hover:underline dark:text-blue-400"
+                            className="font-mono text-[13px] text-primary-text hover:underline"
                           >
                             {source}
                           </a>
